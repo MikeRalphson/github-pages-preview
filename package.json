@@ -1,0 +1,19 @@
+{
+  "name": "JekyllJS",
+  "version": "0.0.1",
+  "description": "A JS Jekyll clone",
+  "main": "app.js",
+  "dependencies": {
+    "bunyan": "1.4.0"
+  },
+  "author": "Damian Connolly <divilly.sausages@gmail.com> (http://divillysausages.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/divillysausages/jekylljs.git"
+  },
+  "keywords": [
+    "Jekyll"
+  ],
+  "license": "UNLICENSED",
+  "private": true
+}
