@@ -5,10 +5,12 @@ import Path			= require( 'path' );
 import RMRF			= require( 'rimraf' );
 import YAML			= require( 'js-yaml' );
 import ConfigHelper	= require( './src/ConfigHelper' );
+import YAMLConfig	= require( './src/YAMLConfig' );
 
 // declare our vars
-var log:Bunyan.Logger 	= null;
-var config:ConfigHelper	= null;
+var log:Bunyan.Logger 		= null;
+var config:ConfigHelper		= null;
+var yamlConfig:YAMLConfig	= null;
 
 function start():void
 {
@@ -41,15 +43,17 @@ function _readToolConfig():void
 	config = new ConfigHelper();
 	config.parse();
 	log.debug( "Config src", config.src );
-	log.debug( "Config dest", config.dest );
 }
 
 // reads the yaml config of our site
-function _readYAMLConfig():Object
+function _readYAMLConfig():void
 {
 	var path = Path.join( config.src.path, "_config.yml" );
 	log.debug( "Reading yaml config from " + path );
 	var yaml = ( FS.existsSync( path ) && YAML.load( FS.readFileSync( path, "utf-8" ) ) ) || {};
-	log.info( "Returning config", yaml)
-	return yaml;    
+	
+	// create our objectc
+	yamlConfig = new YAMLConfig();
+	yamlConfig.fromObj( yaml );
+	log.debug( "YAML config:", yamlConfig );
 }
