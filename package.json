@@ -4,7 +4,11 @@
   "description": "A JS Jekyll clone",
   "main": "app.js",
   "dependencies": {
-    "bunyan": "1.4.0"
+    "bunyan": "1.4.0",
+    "config": "^1.17.1",
+    "js-yaml": "3.4.6",
+    "liquid-node": "2.6.1",
+    "rimraf": "2.5.0"
   },
   "author": "Damian Connolly <divilly.sausages@gmail.com> (http://divillysausages.com)",
   "repository": {
