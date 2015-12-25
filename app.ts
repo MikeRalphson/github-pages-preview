@@ -9,11 +9,12 @@ import Content		= require( './src/Content' );
 import YAMLConfig	= require( './src/YAMLConfig' );
 
 // declare our vars
-var log:Bunyan.Logger 		= null;
-var config:ConfigHelper		= null;
-var yamlConfig:YAMLConfig	= null;
-var posts:Content[]			= [];
-var pages:Content[]			= [];
+var log:Bunyan.Logger 				= null;
+var config:ConfigHelper				= null;
+var yamlConfig:YAMLConfig			= null;
+var posts:Content[]					= [];
+var pages:Content[]					= [];
+var tags:{[tag:string]:Content[]}	= {};
 
 function start():void
 {
@@ -83,10 +84,37 @@ function _readContents( dir:string, ar:Content[] ):void
 		var content:Content 	= new Content();
 		content.readFromFile( filename, contentsRaw );
 		
+		// extract our tags
+		_extractTags( content );
+		
 		ar.push( content );
 	});
 	
-	ar.sort( function( a:Content, b:Content ){
-		return a.date - b.date;
-	});
+	ar.sort( _sortContent );
+}
+
+// extracts the tags for a post/pages
+function _extractTags( content:Content ):void
+{
+	if( content.frontMatter.tags == null || content.frontMatter.tags.length == 0 )
+		return;
+		
+	var len:number = content.frontMatter.tags.length;
+	for( var i = 0; i < len; i++ )
+	{
+		var t:string = content.frontMatter.tags[i];
+		if( t in tags )
+		{
+			tags[t].push( content );
+			tags[t].sort( _sortContent );
+		}
+		else
+			tags[t] = [content];
+	}
+}
+
+// the function used for sorting an array of content objects
+function _sortContent( a:Content, b:Content ):number
+{
+	return a.date - b.date;
 }
