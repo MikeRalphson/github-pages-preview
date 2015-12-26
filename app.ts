@@ -12,10 +12,11 @@ import YAMLConfig	= require( './src/YAMLConfig' );
 /************************************************************/
 
 // declare our vars
-var config:ConfigHelper		= null;
-var log:Bunyan.Logger 		= null;
-var yamlConfig:YAMLConfig	= null;
-var site:Site				= null;
+var config:ConfigHelper					= null;
+var log:Bunyan.Logger 					= null;
+var yamlConfig:YAMLConfig				= null;
+var site:Site							= null;
+var layouts:{ [name:string]:string }	= null;
 	
 /************************************************************/
 
@@ -29,15 +30,16 @@ function run():void
 	_readYAMLConfig();
 	_createSite();
 	
+	layouts = _readLayouts();
 	_readContents( "_posts", site.posts );
 	_readContents( "pages", site.pages );
-	log.info( site.posts.length + " posts and " + site.pages.length + " pages were read. A total of " + Object.keys( site.tags ).length + " tags were found" );
+	log.info( Object.keys( layouts ).length + " layouts, " + site.posts.length + " posts, and " + site.pages.length + " pages were read. A total of " + Object.keys( site.tags ).length + " tags were found" );
 	
 	// clear any previous output
 	var destDir = Path.join( config.src.path, yamlConfig.destination );
 	if( FS.existsSync( destDir ) && FS.statSync( destDir ).isDirectory )
 	{
-		log.info( "Clearing old destination dir " + destDir );
+		log.debug( "Clearing old destination dir " + destDir );
 		RMRF.sync( destDir );
 	}
 	
@@ -93,16 +95,39 @@ function _createSite():void
 	site.updateFromYAML( yamlConfig );
 }
 
-// reads the contents of a folder
-function _readContents( dir:string, ar:Content[] ):void
+// reads the layouts
+function _readLayouts():{ [name:string]:string }
 {
-	var path = Path.join( config.src.path, dir );
-	FS.readdirSync( path ).forEach( function( filename ){
+	var layouts:{ [name:string]:string } = {};
+	
+	// read the dir
+	var path = Path.join( config.src.path, yamlConfig.layouts_dir );
+	FS.readdirSync( path ).forEach( function( filename:string ){
 		
 		// make sure it's a html file
 		if( filename.lastIndexOf( ".html" ) !== ( filename.length - 5 ) )
 		{
-			log.info( "Ignoring the file '" + filename + "' as it's not a HTML file" );
+			log.info( "Ignoring the file '" + filename + "' (" + path + ") in layouts as it's not a HTML file" );
+			return;
+		}
+		
+		var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), "utf-8" );
+		layouts[filename]		= contentsRaw;
+	});
+	
+	return layouts;
+}
+
+// reads the contents of a folder
+function _readContents( dir:string, ar:Content[] ):void
+{
+	var path = Path.join( config.src.path, dir );
+	FS.readdirSync( path ).forEach( function( filename:string ){
+		
+		// make sure it's a html file
+		if( filename.lastIndexOf( ".html" ) !== ( filename.length - 5 ) )
+		{
+			log.info( "Ignoring the file '" + filename + "' (" + path + ") as it's not a HTML file" );
 			return;
 		}
 		
