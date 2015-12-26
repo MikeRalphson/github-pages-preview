@@ -8,25 +8,42 @@ import ConfigHelper	= require( './src/ConfigHelper' );
 import Content		= require( './src/Content' );
 import Site			= require( './src/Site' );
 import YAMLConfig	= require( './src/YAMLConfig' );
+	
+/************************************************************/
 
 // declare our vars
-var log:Bunyan.Logger 		= null;
 var config:ConfigHelper		= null;
+var log:Bunyan.Logger 		= null;
 var yamlConfig:YAMLConfig	= null;
 var site:Site				= null;
+	
+/************************************************************/
 
-function start():void
+/**
+ * Runs our tool, exporting our site
+ */
+function run():void
 {
-	_createLog();
 	_readToolConfig();
+	_createLog();
 	_readYAMLConfig();
 	_createSite();
 	
 	_readContents( "_posts/", site.posts );
 	_readContents( "pages/", site.pages );
 	log.info( site.posts.length + " posts and " + site.pages.length + " pages were read. A total of " + Object.keys( site.tags ).length + " tags were found" );
+	
+	// clear any previous output
+	var destDir = Path.join( config.src.path, yamlConfig.destination );
+	if( FS.existsSync( destDir ) && FS.statSync( destDir ).isDirectory )
+	{
+		log.info( "Clearing old destination dir " + destDir );
+		RMRF.sync( destDir );
+	}
 }
-start();
+run();
+	
+/************************************************************/
 
 // creates the logger that we're going to use
 function _createLog():void
@@ -36,13 +53,13 @@ function _createLog():void
 		name:'JekyllJS',
 		streams:[
 			{
-				name:'console',
-				level:'debug',			// all debug and over to console
+				level:config.log.level,
 				stream:process.stdout
 			}
 		]
 	});
 	log.info( "JekyllJS starting up on", new Date() );
+	log.debug( "Config", config );
 }
 
 // reads the tool config
@@ -50,7 +67,6 @@ function _readToolConfig():void
 {
 	config = new ConfigHelper();
 	config.parse();
-	log.debug( "Config src", config.src );
 }
 
 // reads the yaml config of our site
