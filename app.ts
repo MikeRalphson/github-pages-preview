@@ -6,25 +6,25 @@ import RMRF			= require( 'rimraf' );
 import YAML			= require( 'js-yaml' );
 import ConfigHelper	= require( './src/ConfigHelper' );
 import Content		= require( './src/Content' );
+import Site			= require( './src/Site' );
 import YAMLConfig	= require( './src/YAMLConfig' );
 
 // declare our vars
-var log:Bunyan.Logger 				= null;
-var config:ConfigHelper				= null;
-var yamlConfig:YAMLConfig			= null;
-var posts:Content[]					= [];
-var pages:Content[]					= [];
-var tags:{[tag:string]:Content[]}	= {};
+var log:Bunyan.Logger 		= null;
+var config:ConfigHelper		= null;
+var yamlConfig:YAMLConfig	= null;
+var site:Site				= null;
 
 function start():void
 {
 	_createLog();
 	_readToolConfig();
 	_readYAMLConfig();
+	_createSite();
 	
-	_readContents( "_posts/", posts );
-	_readContents( "pages/", pages );
-	log.info( posts.length + " posts and " + pages.length + " pages were read" );
+	_readContents( "_posts/", site.posts );
+	_readContents( "pages/", site.pages );
+	log.info( site.posts.length + " posts and " + site.pages.length + " pages were read. A total of " + Object.keys( site.tags ).length + " tags were found" );
 }
 start();
 
@@ -66,6 +66,13 @@ function _readYAMLConfig():void
 	log.debug( "YAML config:", yamlConfig );
 }
 
+// creates our site object
+function _createSite():void
+{
+	site = new Site();
+	site.updateFromYAML( yamlConfig );
+}
+
 // reads the contents of a folder
 function _readContents( dir:string, ar:Content[] ):void
 {
@@ -96,25 +103,25 @@ function _readContents( dir:string, ar:Content[] ):void
 // extracts the tags for a post/pages
 function _extractTags( content:Content ):void
 {
-	if( content.frontMatter.tags == null || content.frontMatter.tags.length == 0 )
+	if( content.tags == null || content.tags.length == 0 )
 		return;
 		
-	var len:number = content.frontMatter.tags.length;
+	var len:number = content.tags.length;
 	for( var i = 0; i < len; i++ )
 	{
-		var t:string = content.frontMatter.tags[i];
-		if( t in tags )
+		var t:string = content.tags[i];
+		if( t in site.tags )
 		{
-			tags[t].push( content );
-			tags[t].sort( _sortContent );
+			site.tags[t].push( content );
+			site.tags[t].sort( _sortContent );
 		}
 		else
-			tags[t] = [content];
+			site.tags[t] = [content];
 	}
 }
 
 // the function used for sorting an array of content objects
 function _sortContent( a:Content, b:Content ):number
 {
-	return a.date - b.date;
+	return a.date.getTime() - b.date.getTime();
 }

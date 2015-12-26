@@ -17,7 +17,7 @@ class Content
 	/**
 	 * The main content for the post/page
 	 */
-	public mainContent:string = null;
+	public content:string = null;
 	
 	/**
 	 * The date of the post, as a Date object
@@ -34,6 +34,11 @@ class Content
 	 */
 	public url:string = null;
 	
+	/**
+	 * The tag for this post
+	 */
+	public tags:string[] = [];
+	
 	/************************************************************/
 	
 	/**
@@ -46,10 +51,13 @@ class Content
 		if( a != null )
 		{
 			this.frontMatter.fromObj( YAML.load( a[2] ) );
-			this.mainContent = a[4].trim();
+			this.content = a[4].trim();
 		}
 		else
-			this.mainContent = file.trim();
+			this.content = file.trim();
+			
+		// hold our tags
+		this.tags = this.frontMatter.tags;
 			
 		// set our date
 		if( this.frontMatter.date != null )
@@ -71,7 +79,7 @@ class Content
 		{
 			if( this.frontMatter.permalink.lastIndexOf( "/" ) != this.frontMatter.permalink.length - 1 )
 				this.frontMatter.permalink += "/";
-			this.url = this.frontMatter.permalink + "index.html";
+			this.url = this.frontMatter.permalink;
 		}
 		else
 		{
@@ -81,7 +89,7 @@ class Content
 			var yearStr:string	= year + "/";
 			var monthStr:string	= ( month < 10 ) ? "0" + month + "/" : month + "/";
 			var dayStr:string	= ( day < 10 ) ? "0" + day + "/" : day + "/";
-			this.url 			= yearStr + monthStr + dayStr + this.name + "/index.html";
+			this.url 			= yearStr + monthStr + dayStr + this.name;
 		}
 	}
 	
