@@ -29,8 +29,8 @@ function run():void
 	_readYAMLConfig();
 	_createSite();
 	
-	_readContents( "_posts/", site.posts );
-	_readContents( "pages/", site.pages );
+	_readContents( "_posts", site.posts );
+	_readContents( "pages", site.pages );
 	log.info( site.posts.length + " posts and " + site.pages.length + " pages were read. A total of " + Object.keys( site.tags ).length + " tags were found" );
 	
 	// clear any previous output
@@ -40,6 +40,10 @@ function run():void
 		log.info( "Clearing old destination dir " + destDir );
 		RMRF.sync( destDir );
 	}
+	
+	// save our pages/posts
+	_saveContents( site.posts, destDir );
+	_saveContents( site.pages, destDir );
 }
 run();
 	
@@ -92,7 +96,7 @@ function _createSite():void
 // reads the contents of a folder
 function _readContents( dir:string, ar:Content[] ):void
 {
-	var path = Path.join( config.src.path + dir );
+	var path = Path.join( config.src.path, dir );
 	FS.readdirSync( path ).forEach( function( filename ){
 		
 		// make sure it's a html file
@@ -133,6 +137,31 @@ function _extractTags( content:Content ):void
 		}
 		else
 			site.tags[t] = [content];
+	}
+}
+
+// goes through and saves all our content
+function _saveContents( contents:Content[], root:string ):void
+{
+	var len:number = contents.length;
+	for( var i:number = 0; i < len; i++ )
+	{
+		var content:Content = contents[i];
+		_ensureDirs( content.url, root );
+	}
+}
+
+// makes sure that all the directories for a particular path exist
+function _ensureDirs( path:string, root:string ):void
+{
+	var curr:string		= root + Path.sep;
+	var parts:string[] 	= ( path.indexOf( "/" ) != -1 ) ? path.split( "/" ) : path.split( Path.sep ); // as path might be a url, we check for forward slashes
+	var len:number		= parts.length;
+	for( var i = 0; i < len; i++ )
+	{
+		curr += parts[i] + Path.sep;
+		if( !FS.existsSync( curr ) )
+			FS.mkdirSync( curr );
 	}
 }
 
