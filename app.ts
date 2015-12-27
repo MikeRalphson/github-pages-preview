@@ -242,7 +242,7 @@ function _copyAllOtherFiles( dir:string ):void
 			var content:Content = _readContent( dir, filename );
 			if( content.frontMatter )
 			{
-				log.info( "DEALING WITH FRONT MATTER IN OTHER FILE: " + destPath );
+				// TODO: deal with liquid
 			}
 			else
 				_copyFile( path, destPath );
@@ -253,7 +253,6 @@ function _copyAllOtherFiles( dir:string ):void
 // copies a file from one path to another
 function _copyFile( inPath:string, outPath:string ):void
 {
-	log.info( "COPYING FILE '" + inPath + "' TO '" + outPath + "'")
 	var buffer:Buffer 	= new Buffer( 65536 ); // short max size
 	var pos:number		= 0;
 	var inFile:number	= FS.openSync( inPath, "r" );
