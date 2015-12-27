@@ -46,6 +46,8 @@ function run():void
 	// save our pages/posts
 	_saveContents( site.posts, destDir );
 	_saveContents( site.pages, destDir );
+	
+	log.info( "JekyllJS build finished!" );
 }
 run();
 	

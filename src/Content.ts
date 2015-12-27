@@ -12,7 +12,7 @@ class Content
 	/**
 	 * The front matter for the content
 	 */
-	public frontMatter:FrontMatter = new FrontMatter();
+	public frontMatter:FrontMatter = null;
 	
 	/**
 	 * The main content for the post/page
@@ -39,6 +39,11 @@ class Content
 	 */
 	public tags:string[] = [];
 	
+	/**
+	 * Is this a HTML file?
+	 */
+	public isHTMLFile:boolean = false;
+	
 	/************************************************************/
 	
 	/**
@@ -50,38 +55,46 @@ class Content
 		var a:string[] = file.match( /(^---(?:\r\n|\n))([\s\S]+)((?:\r\n|\n)---(?:\r\n|\n))([\s\S]+)/ );
 		if( a != null )
 		{
+			this.content 		= a[4].trim();
+			this.frontMatter	= new FrontMatter();
 			this.frontMatter.fromObj( YAML.load( a[2] ) );
-			this.content = a[4].trim();
 		}
 		else
 			this.content = file.trim();
 			
-		// hold our tags
-		this.tags = this.frontMatter.tags;
+		// update our vars from our front matter, if we have some
+		if( this.frontMatter != null )
+		{
+			// copy our tags
+			this.tags = this.frontMatter.tags;
 			
-		// set our date
-		if( this.frontMatter.date != null )
-			this.date = new Date( this.frontMatter.date );
+			// set our date
+			if( this.frontMatter.date != null )
+				this.date = new Date( this.frontMatter.date );
+			
+			// set our url
+			if( this.frontMatter.permalink != null )
+			{
+				if( this.frontMatter.permalink.lastIndexOf( "/" ) != this.frontMatter.permalink.length - 1 )
+					this.frontMatter.permalink += "/";
+				this.url = this.frontMatter.permalink;
+			}
+		}
 			
 		// create our filename object (get the date and name)
 		a = filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-(.+)(\.html)/ );
 		if( a != null )
 		{
-			this.name = a[4];
+			this.isHTMLFile	= true;
+			this.name 		= a[4];
 			if( this.date == null )
 				this.date = new Date( Number( a[1] ), Number( a[2] ) - 1, Number( a[3] ) );
 		}
 		else
-			this.name = filename.substr( 0, -5 );
+			this.name = filename.substr( 0, filename.lastIndexOf( "." ) );
 			
-		// set our url
-		if( this.frontMatter.permalink != null )
-		{
-			if( this.frontMatter.permalink.lastIndexOf( "/" ) != this.frontMatter.permalink.length - 1 )
-				this.frontMatter.permalink += "/";
-			this.url = this.frontMatter.permalink;
-		}
-		else
+		// set our url if we need to
+		if( this.url == null && this.date != null )
 		{
 			var year:number 	= this.date.getFullYear();
 			var month:number 	= this.date.getMonth() + 1;
@@ -90,6 +103,13 @@ class Content
 			var monthStr:string	= ( month < 10 ) ? "0" + month + "/" : month + "/";
 			var dayStr:string	= ( day < 10 ) ? "0" + day + "/" : day + "/";
 			this.url 			= yearStr + monthStr + dayStr + this.name;
+		}
+		else
+		{
+			if( this.date == null )
+				this.date = new Date();
+			if( this.url == null )
+				this.url = filename;
 		}
 	}
 	
