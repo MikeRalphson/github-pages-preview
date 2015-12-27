@@ -30,6 +30,7 @@ function run():void
 	_readYAMLConfig();
 	_createSite();
 	
+	log.debug( "Reading content" );
 	layouts = _readLayouts();
 	_readContents( "_posts", site.posts );
 	_readContents( "pages", site.pages );
@@ -44,10 +45,20 @@ function run():void
 	}
 	
 	// save our pages/posts
+	log.debug( "Saving site content" );
 	_saveContents( site.posts, destDir );
 	_saveContents( site.pages, destDir );
 	
+	// copy the rest of the stuff
+	log.debug( "Saving other site files" );
+	try {
+	_copyAllOtherFiles( config.src.path );
+	}
+	catch( e ) { log.error( e );}
+	
+	// finished
 	log.info( "JekyllJS build finished!" );
+	process.exit();
 }
 run();
 	
@@ -113,7 +124,7 @@ function _readLayouts():{ [name:string]:string }
 			return;
 		}
 		
-		var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), "utf-8" );
+		var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), yamlConfig.encoding );
 		layouts[filename]		= contentsRaw;
 	});
 	
@@ -134,9 +145,7 @@ function _readContents( dir:string, ar:Content[] ):void
 		}
 		
 		// create our content object
-		var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), "utf-8" );
-		var content:Content 	= new Content();
-		content.readFromFile( filename, contentsRaw );
+		var content:Content = _readContent( path, filename );
 		
 		// extract our tags
 		_extractTags( content );
@@ -145,6 +154,15 @@ function _readContents( dir:string, ar:Content[] ):void
 	});
 	
 	ar.sort( _sortContent );
+}
+
+// reads a single file, returning a Content object
+function _readContent( path:string, filename:string ):Content
+{
+	var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), yamlConfig.encoding );
+	var content:Content 	= new Content();
+	content.readFromFile( filename, contentsRaw );
+	return content;
 }
 
 // extracts the tags for a post/pages
@@ -178,6 +196,79 @@ function _saveContents( contents:Content[], root:string ):void
 	}
 }
 
+// copies all the other files necessary
+function _copyAllOtherFiles( dir:string ):void
+{
+	FS.readdirSync( dir ).forEach( function( filename:string ){
+		
+		// get the full path
+		var path:string = Path.join( dir, filename );
+		
+		// ignore hidden files, or files beginning with "_"
+		if( /^[_\.]/.test( filename ) )
+		{
+			// but only if they're not in the config.yml include
+			if( yamlConfig.include.indexOf( filename ) == -1 )
+			{
+				log.debug( "Ignoring " + path + " as it's a hidden file, or a special directory" );
+				return;
+			}
+			log.debug( "Including " + path + " as it's in our YAML include array" );
+		}
+		
+		// if it's in our exclude array, ignore it
+		if( yamlConfig.exclude.indexOf( filename ) != -1 )
+		{
+			log.debug( "Ignoring " + Path.join( dir, filename ) + " as it's in our YAML exclude array" );
+			return;
+		}
+		
+		// if it's a directory, recurse
+		if( FS.statSync( path ).isDirectory() )
+		{
+			if( filename == "pages" )
+				return; // ignore the pages dir, as we're already treating it
+			_copyAllOtherFiles( path );
+		}
+		else
+		{
+			// make sure the directories for the file exists
+			var destRootDir:string	= Path.join( config.src.path, yamlConfig.destination );
+			var destDir:string		= Path.join( destRootDir, Path.relative( config.src.path, dir ) );
+			var destPath:string 	= Path.join( destDir, filename );
+			_ensureDirs( Path.relative( destRootDir, destDir ), destRootDir );
+			
+			// read the file
+			var content:Content = _readContent( dir, filename );
+			if( content.frontMatter )
+			{
+				log.info( "DEALING WITH FRONT MATTER IN OTHER FILE: " + destPath );
+			}
+			else
+				_copyFile( path, destPath );
+		}
+	});	
+}
+
+// copies a file from one path to another
+function _copyFile( inPath:string, outPath:string ):void
+{
+	log.info( "COPYING FILE '" + inPath + "' TO '" + outPath + "'")
+	var buffer:Buffer 	= new Buffer( 65536 ); // short max size
+	var pos:number		= 0;
+	var inFile:number	= FS.openSync( inPath, "r" );
+	var outFile:number	= FS.openSync( outPath, "w" );
+	do
+	{
+		var read:number = FS.readSync( inFile, buffer, 0, buffer.length, pos );
+		FS.writeSync( outFile, buffer, 0, read, pos );
+		pos += read;
+	}
+	while( read > 0 );
+	FS.closeSync( inFile );
+	FS.closeSync( outFile );
+}
+
 // makes sure that all the directories for a particular path exist
 function _ensureDirs( path:string, root:string ):void
 {
@@ -186,7 +277,8 @@ function _ensureDirs( path:string, root:string ):void
 	var len:number		= parts.length;
 	for( var i = 0; i < len; i++ )
 	{
-		curr += parts[i] + Path.sep;
+		curr 	+= parts[i] + Path.sep;
+		curr	= Path.normalize( curr );
 		if( !FS.existsSync( curr ) )
 			FS.mkdirSync( curr );
 	}
