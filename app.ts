@@ -1,6 +1,7 @@
 /// <reference path='typings/tsd.d.ts' />
 import Bunyan		= require( 'bunyan' );
 import FS			= require( 'fs' );
+import Liquid		= require( 'liquid-node' );
 import Path			= require( 'path' );
 import RMRF			= require( 'rimraf' );
 import YAML			= require( 'js-yaml' );
@@ -12,6 +13,7 @@ import YAMLConfig	= require( './src/YAMLConfig' );
 /************************************************************/
 
 // declare our vars
+var liquidEngine:Liquid.Engine			= new Liquid.Engine();
 var config:ConfigHelper					= null;
 var log:Bunyan.Logger 					= null;
 var yamlConfig:YAMLConfig				= null;
@@ -51,14 +53,11 @@ function run():void
 	
 	// copy the rest of the stuff
 	log.debug( "Saving other site files" );
-	try {
 	_copyAllOtherFiles( config.src.path );
-	}
-	catch( e ) { log.error( e );}
 	
 	// finished
 	log.info( "JekyllJS build finished!" );
-	process.exit();
+	// process.exit();
 }
 run();
 	
@@ -243,6 +242,15 @@ function _copyAllOtherFiles( dir:string ):void
 			if( content.frontMatter )
 			{
 				// TODO: deal with liquid
+				// NOTE: need to register filters (xml_escape etc)
+				// NOTE: doesn't seem to handle includes? BlankFileSystem
+				// NOTE: as this uses promises, we also need to wrap the call so we don't kill the process too early
+				liquidEngine.parseAndRender( content.content, site ).then( function ( result ){
+					
+					log.info( "In then for " + filename)
+				}).catch( function( c ){
+					log.error( "Catch for " + filename, c );
+				})
 			}
 			else
 				_copyFile( path, destPath );
