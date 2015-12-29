@@ -146,12 +146,12 @@ class FrontMatter
 	/**
 	 * If we want to assign multiple categories to the page/post
 	 */
-	public categories:string[] = []];
+	public categories:string[] = [];
 	
 	/**
 	 * The tags to associate with this page/post
 	 */
-	public tags:string[] = []];
+	public tags:string[] = [];
 	
 	/**
 	 * The date that will override the date from the name of the post
