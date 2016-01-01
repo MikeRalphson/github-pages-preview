@@ -30,6 +30,11 @@ class Content
 	public date:Date = null;
 	
 	/**
+	 * The filename for this content
+	 */
+	public filename:string = null;
+	
+	/**
 	 * The name of the post, taken from the filename
 	 */
 	public name:string = null;
@@ -98,7 +103,8 @@ class Content
 		}
 			
 		// create our filename object (get the date and name)
-		a = filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)/ );
+		this.filename	= filename;
+		a 				= this.filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)/ );
 		if( a != null )
 		{
 			this.isHTMLFile	= true;
@@ -114,7 +120,7 @@ class Content
 			}
 		}
 		else
-			this.name = filename.substr( 0, filename.lastIndexOf( "." ) );
+			this.name = this.filename.substr( 0, this.filename.lastIndexOf( "." ) );
 			
 		// set our url if we need to
 		if( this.url == null && this.date != null )
