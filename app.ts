@@ -33,18 +33,9 @@ function run():void
 	_createSite();
 	
 	log.debug( "Reading content" );
-	try 
-	{
-		layouts = _readLayouts();
-		_readContents( "_posts", siteObj.site.posts );
-		_readContents( "pages", siteObj.site.pages );
-	} 
-	catch ( e ) 
-	{
-		log.error( "Couldn't read content", e );
-		process.exit();
-		return;
-	}
+	layouts = _readLayouts();
+	_readContents( "_posts", siteObj.site.posts );
+	_readContents( "pages", siteObj.site.pages );
 	log.info( Object.keys( layouts ).length + " layouts, " + siteObj.site.posts.length + " posts, and " + siteObj.site.pages.length + " pages were read. A total of " + Object.keys( siteObj.site.tags ).length + " tags were found" );
 	
 	// clear any previous output
