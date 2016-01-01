@@ -7,6 +7,7 @@
     "bunyan": "1.4.0",
     "config": "1.17.1",
     "dateformat": "1.0.12",
+    "es6-promise": "3.0.2",
     "js-yaml": "3.4.6",
     "liquid-node": "2.6.1",
     "rimraf": "2.5.0"
