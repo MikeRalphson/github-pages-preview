@@ -15,6 +15,11 @@ class Content
 	public frontMatter:FrontMatter = null;
 	
 	/**
+	 * The title for the content
+	 */
+	public title:string = null;
+	
+	/**
 	 * The main content for the post/page
 	 */
 	public content:string = null;
@@ -44,6 +49,11 @@ class Content
 	 */
 	public isHTMLFile:boolean = false;
 	
+	/**
+	 * Does the page have any special instructions for when we're generating the sitemap?
+	 */
+	public sitemap:{ lastmod:string, priority:number, changefreq:string } = null;
+	
 	/************************************************************/
 	
 	/**
@@ -65,8 +75,14 @@ class Content
 		// update our vars from our front matter, if we have some
 		if( this.frontMatter != null )
 		{
+			// copy our title
+			this.title = this.frontMatter.title;
+			
 			// copy our tags
 			this.tags = this.frontMatter.tags;
+			
+			// copy our sitemap
+			this.sitemap = this.frontMatter.sitemap;
 			
 			// set our date
 			if( this.frontMatter.date != null )
@@ -82,13 +98,20 @@ class Content
 		}
 			
 		// create our filename object (get the date and name)
-		a = filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-(.+)(\.html)/ );
+		a = filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)/ );
 		if( a != null )
 		{
 			this.isHTMLFile	= true;
 			this.name 		= a[4];
 			if( this.date == null )
 				this.date = new Date( Number( a[1] ), Number( a[2] ) - 1, Number( a[3] ) );
+				
+			// set our title if we don't have it
+			if( this.title == null )
+			{
+				this.title = this.name.replace( "-", " " );
+				this.title = this.title.substr( 0, 1 ).toUpperCase() + this.title.substr( 1 ); // capitalise
+			}
 		}
 		else
 			this.name = filename.substr( 0, filename.lastIndexOf( "." ) );
@@ -134,6 +157,11 @@ class FrontMatter
 	public permalink:string = null;
 	
 	/**
+	 * The title for the content
+	 */
+	public title:string = null;
+	
+	/**
 	 * Is this post/page published?
 	 */
 	public published:boolean = true;
@@ -167,6 +195,11 @@ class FrontMatter
 	 * Does this page/post have any associated files? (found in _includess)
 	 */
 	public hasFiles:boolean = false;
+	
+	/**
+	 * Does the page have any special instructions for when we're generating the sitemap?
+	 */
+	public sitemap:{ lastmod:string, priority:number, changefreq:string } = null;
 	
 	/************************************************************/
 	
