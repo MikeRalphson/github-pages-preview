@@ -101,7 +101,11 @@ function _readYAMLConfig():void
 {
 	var path = Path.join( config.src.path, "_config.yml" );
 	log.debug( "Reading yaml config from " + path );
-	var yaml = ( FS.existsSync( path ) && YAML.load( FS.readFileSync( path, "utf-8" ) ) ) || {};
+	var yaml = {};
+	if( FS.existsSync( path ) )
+		yaml = YAML.load( FS.readFileSync( path, "utf-8" ) );
+	else
+		log.warn( "The YAML config file (" + path + ") doesn't exist" );
 	
 	// create our objectc
 	yamlConfig = new YAMLConfig();
@@ -121,8 +125,15 @@ function _readLayouts():{ [name:string]:string }
 {
 	var layouts:{ [name:string]:string } = {};
 	
-	// read the dir
+	// make sure the dir exists
 	var path = Path.join( config.src.path, yamlConfig.layouts_dir );
+	if( !FS.existsSync( path ) )
+	{
+		log.warn( "Can't read any layouts as the dir '" + path + "' doesn't exist" );
+		return layouts;
+	}
+	
+	// read the dir
 	FS.readdirSync( path ).forEach( function( filename:string ){
 		
 		// make sure it's a html file
@@ -142,7 +153,15 @@ function _readLayouts():{ [name:string]:string }
 // reads the contents of a folder
 function _readContents( dir:string, ar:Content[] ):void
 {
+	// make sure our path exists before doing anything
 	var path = Path.join( config.src.path, dir );
+	if( !FS.existsSync( path ) )
+	{
+		log.warn( "The dir '" + path + "' doesn't exist" );
+		return;
+	}
+	
+	// parse the dir
 	FS.readdirSync( path ).forEach( function( filename:string ){
 		
 		// make sure it's a html file
@@ -154,11 +173,12 @@ function _readContents( dir:string, ar:Content[] ):void
 		
 		// create our content object
 		var content:Content = _readContent( path, filename );
-		
-		// extract our tags
-		_extractTags( content );
-		
-		ar.push( content );
+		if( content != null )
+		{
+			// extract our tags and add it
+			_extractTags( content );
+			ar.push( content );
+		}
 	});
 	
 	ar.sort( _sortContent );
@@ -167,7 +187,16 @@ function _readContents( dir:string, ar:Content[] ):void
 // reads a single file, returning a Content object
 function _readContent( path:string, filename:string ):Content
 {
-	var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), yamlConfig.encoding );
+	// make sure our path exists
+	var filePath = Path.join( path, filename );
+	if( !FS.existsSync( filePath ) )
+	{
+		log.warn( "Can't read the content '" + filePath + "' as the file doesn't exist" );
+		return null;
+	}
+	
+	// read the file
+	var contentsRaw:string 	= FS.readFileSync( filePath, yamlConfig.encoding );
 	var content:Content 	= new Content();
 	content.readFromFile( filename, contentsRaw );
 	return content;
@@ -248,7 +277,7 @@ function _copyAllOtherFiles( dir:string ):void
 			
 			// read the file
 			var content:Content = _readContent( dir, filename );
-			if( content.frontMatter )
+			if( content != null && content.frontMatter )
 			{
 				// TODO: deal with liquid
 				// NOTE: need to register filters (xml_escape etc)
@@ -261,7 +290,7 @@ function _copyAllOtherFiles( dir:string ):void
 					log.error( "Catch for " + filename, c );
 				})
 			}
-			else
+			else if( content != null )
 				_copyFile( path, destPath );
 		}
 	});	
