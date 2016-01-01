@@ -24,6 +24,7 @@ var log:Bunyan.Logger 					= null;
 var yamlConfig:YAMLConfig				= null;
 var siteObj:{ site:Site }				= null;
 var layouts:{ [name:string]:string }	= null;
+var numContentToConvert:number			= 0;
 	
 /************************************************************/
 
@@ -38,32 +39,44 @@ function run():void
 	_createSite();
 	_createLiquidEngine();
 	
+	// load our pages etc
 	log.debug( "Reading content" );
 	layouts = _readLayouts();
 	_readContents( "_posts", siteObj.site.posts );
 	_readContents( "pages", siteObj.site.pages );
 	log.info( Object.keys( layouts ).length + " layouts, " + siteObj.site.posts.length + " posts, and " + siteObj.site.pages.length + " pages were read. A total of " + Object.keys( siteObj.site.tags ).length + " tags were found" );
 	
-	// clear any previous output
-	var destDir = Path.join( config.src.path, yamlConfig.destination );
-	if( FS.existsSync( destDir ) && FS.statSync( destDir ).isDirectory )
-	{
-		log.debug( "Clearing old destination dir " + destDir );
-		RMRF.sync( destDir );
-	}
+	// convert our content
+	log.debug( "Parsing liquid tags in our content" );
+	_convertContents().then( function(){ // technically this returns a Content object, but we don't care
 	
-	// save our pages/posts
-	log.debug( "Saving site content" );
-	_saveContents( siteObj.site.posts, destDir );
-	_saveContents( siteObj.site.pages, destDir );
-	
-	// copy the rest of the stuff
-	log.debug( "Saving other site files" );
-	_copyAllOtherFiles( config.src.path );
-	
-	// finished
-	log.info( "JekyllJS build finished!" );
-	// process.exit();
+		// if numContentToConvert isn't 0, then some of our files didn't convert
+		if( numContentToConvert > 0 )
+		{
+			log.error( numContentToConvert + " file(s) didn't properly parse - aborting" );
+			process.exit();
+			return;
+		}
+		
+		// clear any previous output
+		var destDir = Path.join( config.src.path, yamlConfig.destination );
+		_rmrfDir( destDir );
+		
+		// save our pages/posts
+		log.debug( "Saving site content" );
+		_saveContents( siteObj.site.posts, destDir );
+		_saveContents( siteObj.site.pages, destDir );
+		
+		// copy the rest of the stuff
+		log.debug( "Saving other site files" );
+		_copyAllOtherFiles( config.src.path );
+		
+		// finished
+		log.info( "JekyllJS build finished!" );
+		// process.exit();
+	}).catch( function( e ){
+		log.error( "Error in run:" + typeof( e ), e)
+	})
 }
 run();
 	
@@ -271,6 +284,62 @@ function _extractTags( content:Content ):void
 	}
 }
 
+// converts our content, using the liquid tags
+function _convertContents():Promise<Content>
+{
+	// as this uses promises, we need to chain the whole thing
+	var sequence = Promise.resolve<Content>();
+	
+	// store the number of files we need to convert
+	numContentToConvert = siteObj.site.posts.length + siteObj.site.pages.length;
+	
+	// go through all our posts
+	siteObj.site.posts.forEach( function( post:Content ){
+		
+		// add them to the sequence
+		sequence = sequence.then( function() {
+			return _convertContent( post );
+		});
+	});
+	
+	// add in all our pages
+	siteObj.site.pages.forEach( function( page:Content ){
+		
+		// add them to the sequence
+		sequence = sequence.then( function(){
+			return _convertContent( page );
+		});
+	});
+	
+	// return the promise, which will fulfill when all files are converted
+	return sequence;
+}
+
+// converts a single content, returning a Promise
+function _convertContent( content:Content ):Promise<Content>
+{
+	return liquidEngine.parseAndRender( content.content, siteObj ).then( function( result ){
+		
+		// save the converted result back to the content (as it can be used later if it's included anywhere)
+		log.debug( "Finished parsing liquid in " + content.filename );
+		numContentToConvert--; // only necessary when we're converting the pages/posts
+		content.content = result;
+		return content;
+	}).catch( function( e ){
+		log.error( "Couldn't parse liquid in " + content.filename, e );
+	})
+}
+
+// clears a directory and everything in it
+function _rmrfDir( dir:string ):void
+{
+	if( FS.existsSync( dir ) && FS.statSync( dir ).isDirectory )
+	{
+		log.debug( "Clearing dir " + dir );
+		RMRF.sync( dir );
+	}
+}
+
 // goes through and saves all our content
 function _saveContents( contents:Content[], root:string ):void
 {
@@ -334,7 +403,8 @@ function _copyAllOtherFiles( dir:string ):void
 				// NOTE: as this uses promises, we also need to wrap the call so we don't kill the process too early
 				liquidEngine.parseAndRender( content.content, siteObj ).then( function ( result ){
 					
-					log.info( "In then for " + filename)
+					// log.info( "In then for " + filename)
+					// log.info( result );
 				}).catch( function( c ){
 					log.error( "Catch for " + filename, c );
 				})
