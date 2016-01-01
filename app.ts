@@ -17,7 +17,7 @@ var liquidEngine:Liquid.Engine			= new Liquid.Engine();
 var config:ConfigHelper					= null;
 var log:Bunyan.Logger 					= null;
 var yamlConfig:YAMLConfig				= null;
-var site:Site							= null;
+var siteObj:{ site:Site }				= null;
 var layouts:{ [name:string]:string }	= null;
 	
 /************************************************************/
@@ -33,10 +33,19 @@ function run():void
 	_createSite();
 	
 	log.debug( "Reading content" );
-	layouts = _readLayouts();
-	_readContents( "_posts", site.posts );
-	_readContents( "pages", site.pages );
-	log.info( Object.keys( layouts ).length + " layouts, " + site.posts.length + " posts, and " + site.pages.length + " pages were read. A total of " + Object.keys( site.tags ).length + " tags were found" );
+	try 
+	{
+		layouts = _readLayouts();
+		_readContents( "_posts", siteObj.site.posts );
+		_readContents( "pages", siteObj.site.pages );
+	} 
+	catch ( e ) 
+	{
+		log.error( "Couldn't read content", e );
+		process.exit();
+		return;
+	}
+	log.info( Object.keys( layouts ).length + " layouts, " + siteObj.site.posts.length + " posts, and " + siteObj.site.pages.length + " pages were read. A total of " + Object.keys( siteObj.site.tags ).length + " tags were found" );
 	
 	// clear any previous output
 	var destDir = Path.join( config.src.path, yamlConfig.destination );
@@ -48,8 +57,8 @@ function run():void
 	
 	// save our pages/posts
 	log.debug( "Saving site content" );
-	_saveContents( site.posts, destDir );
-	_saveContents( site.pages, destDir );
+	_saveContents( siteObj.site.posts, destDir );
+	_saveContents( siteObj.site.pages, destDir );
 	
 	// copy the rest of the stuff
 	log.debug( "Saving other site files" );
@@ -103,8 +112,8 @@ function _readYAMLConfig():void
 // creates our site object
 function _createSite():void
 {
-	site = new Site();
-	site.updateFromYAML( yamlConfig );
+	siteObj = { site:new Site() };
+	siteObj.site.updateFromYAML( yamlConfig );
 }
 
 // reads the layouts
@@ -174,13 +183,13 @@ function _extractTags( content:Content ):void
 	for( var i = 0; i < len; i++ )
 	{
 		var t:string = content.tags[i];
-		if( t in site.tags )
+		if( t in siteObj.site.tags )
 		{
-			site.tags[t].push( content );
-			site.tags[t].sort( _sortContent );
+			siteObj.site.tags[t].push( content );
+			siteObj.site.tags[t].sort( _sortContent );
 		}
 		else
-			site.tags[t] = [content];
+			siteObj.site.tags[t] = [content];
 	}
 }
 
@@ -245,7 +254,7 @@ function _copyAllOtherFiles( dir:string ):void
 				// NOTE: need to register filters (xml_escape etc)
 				// NOTE: doesn't seem to handle includes? BlankFileSystem
 				// NOTE: as this uses promises, we also need to wrap the call so we don't kill the process too early
-				liquidEngine.parseAndRender( content.content, site ).then( function ( result ){
+				liquidEngine.parseAndRender( content.content, siteObj ).then( function ( result ){
 					
 					log.info( "In then for " + filename)
 				}).catch( function( c ){
