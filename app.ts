@@ -1,5 +1,6 @@
 /// <reference path='typings/tsd.d.ts' />
 import Bunyan		= require( 'bunyan' );
+import DateFormat	= require( 'dateformat' );
 import FS			= require( 'fs' );
 import Liquid		= require( 'liquid-node' );
 import Path			= require( 'path' );
@@ -13,7 +14,7 @@ import YAMLConfig	= require( './src/YAMLConfig' );
 /************************************************************/
 
 // declare our vars
-var liquidEngine:Liquid.Engine			= new Liquid.Engine();
+var liquidEngine:Liquid.Engine			= null;
 var config:ConfigHelper					= null;
 var log:Bunyan.Logger 					= null;
 var yamlConfig:YAMLConfig				= null;
@@ -31,6 +32,7 @@ function run():void
 	_createLog();
 	_readYAMLConfig();
 	_createSite();
+	_createLiquidEngine();
 	
 	log.debug( "Reading content" );
 	layouts = _readLayouts();
@@ -109,6 +111,58 @@ function _createSite():void
 {
 	siteObj = { site:new Site() };
 	siteObj.site.updateFromYAML( yamlConfig );
+}
+
+// creates our liquid engine, which will parse our liquid tags
+function _createLiquidEngine():void
+{
+	liquidEngine = new Liquid.Engine();
+	
+	// create our entity map and escape function for escaping html/xml
+	// NOTE: while this isn't exactly the best XML escape (it ignores ' and /),
+	// it seems to match the jekyll xml_escape
+	var escapeEntityMap:{ [char:string]:string } = {
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		'"': "&quot;",
+		// "'": "&#39;",
+		// "/": "&#x2F;",
+		"¢": "&cent;",
+		"£": "&pound;",
+		"¥": "&yen;",
+		"€": "&euro;",
+		"©": "&copy;",
+		"®": "&reg;"
+	}
+	
+	// create our regex
+	var escapeREStr = "[";
+	for( var char in escapeEntityMap )
+		escapeREStr += char;
+	escapeREStr += "]";
+	var escapeRE:RegExp = new RegExp( escapeREStr, "g" );
+	
+	// create our escape function
+	function escapeReplace( matchedEntity:string )
+	{
+		return escapeEntityMap[matchedEntity];
+	}
+	
+	// add in any custom filters
+	liquidEngine.registerFilters({
+		
+		// converts a date to an XML schema date string
+		"date_to_xmlschema": function( date:string|Date ):string {
+			var d:Date = ( typeof date === 'string' ) ? new Date( date ) : date;
+			return DateFormat( d, "isoDateTime" );
+		},
+		
+		// escapes HTML chars so they can be used in XML
+		"xml_escape": function( input:string ):string {			
+			return input.replace( escapeRE, escapeReplace );
+		}
+	});
 }
 
 // reads the layouts
