@@ -1,19 +1,21 @@
 /// <reference path='typings/tsd.d.ts' />
 require('es6-promise').polyfill(); // auto-polyfill entire Node environment for Promise
 
-import Bunyan		= require( 'bunyan' );
-import DateFormat	= require( 'dateformat' );
-import FS			= require( 'fs' );
-import Liquid		= require( 'liquid-node' );
-import Path			= require( 'path' );
-import RMRF			= require( 'rimraf' );
-import RSVP			= require( 'es6-promise' );
-import YAML			= require( 'js-yaml' );
-import ConfigHelper	= require( './src/ConfigHelper' );
-import Content		= require( './src/Content' );
-import Site			= require( './src/Site' );
-import YAMLConfig	= require( './src/YAMLConfig' );
-var Promise			= RSVP.Promise;
+import Bunyan				= require( 'bunyan' );
+import DateFormat			= require( 'dateformat' );
+import FS					= require( 'fs' );
+import Liquid				= require( 'liquid-node' );
+import Path					= require( 'path' );
+import RMRF					= require( 'rimraf' );
+import RSVP					= require( 'es6-promise' );
+import YAML					= require( 'js-yaml' );
+import ConfigHelper			= require( './src/ConfigHelper' );
+import Content				= require( './src/Content' );
+import LiquidHighlight		= require( './src/LiquidHighlight' );
+import LiquidEndHighlight	= require( './src/LiquidEndHighlight' );
+import Site					= require( './src/Site' );
+import YAMLConfig			= require( './src/YAMLConfig' );
+var Promise					= RSVP.Promise;
 	
 /************************************************************/
 
@@ -180,6 +182,12 @@ function _createLiquidEngine():void
 			return input.replace( escapeRE, escapeReplace );
 		}
 	});
+	
+	LiquidHighlight.log = log;
+	
+	// add in our custom tag for the highlight
+	liquidEngine.registerTag( "highlight", LiquidHighlight );
+	liquidEngine.registerTag( "endhighlight", LiquidEndHighlight );
 }
 
 // reads the layouts
