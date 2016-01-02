@@ -31,14 +31,15 @@ class LiquidHighlight extends Liquid.Block
 	
 	/**
 	 * Called when we want to render the contents of our tag
+	 * @param context The context that we want to use when passing our data
 	 */
-	public render()
+	public render( context:any )
 	{
 		var lh:LiquidHighlight = this;
 		
 		// get the content as a string, then highlight it
 		// TODO: call highlight.js on this
-		return super.render().then( function( ar:string[] ){
+		return super.render( context ).then( function( ar:string[] ){
 			var str:string = Liquid.Helpers.toFlatString( ar );
 			return lh._lang + ": " + str.toUpperCase();
 		});
