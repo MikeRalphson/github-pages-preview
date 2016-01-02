@@ -1,6 +1,7 @@
 
 import Bunyan	= require( 'bunyan' );
 import RSVP		= require( 'es6-promise' );
+import HLJS		= require( 'highlight.js' );
 import Liquid 	= require( 'liquid-node' );
 var Promise		= RSVP.Promise;
 
@@ -38,10 +39,20 @@ class LiquidHighlight extends Liquid.Block
 		var lh:LiquidHighlight = this;
 		
 		// get the content as a string, then highlight it
-		// TODO: call highlight.js on this
 		return super.render( context ).then( function( ar:string[] ){
+			
 			var str:string = Liquid.Helpers.toFlatString( ar );
-			return lh._lang + ": " + str.toUpperCase();
+			
+			// if we don't have a language, don't do anything
+			if( lh._lang == null )
+				return "<pre><code class=\"nohighlight\">" + str + "</code></pre>";
+				
+			// get the language class
+			var clazz:string = ( lh._lang == "as3" ) ? "actionscript" : lh._lang; // special case as highlight.js uses "actionscript/as" instead of "as3"
+			
+			// highlight our code and wrap it in <pre><code> tags
+			str = HLJS.highlight( clazz, str, true ).value;
+			return "<pre><code class=\"language-" + clazz + "\">" + str + "</code></pre>";
 		});
 	}
 }
