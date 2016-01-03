@@ -114,8 +114,6 @@ class Content
 				if( this.frontMatter.permalink.lastIndexOf( "/" ) != this.frontMatter.permalink.length - 1 )
 					this.frontMatter.permalink += "/";
 				this.url = this.frontMatter.permalink;
-				if( this.url.indexOf( ".htm" ) == -1 )
-					this.url = Path.join( this.url, "index.html" );
 			}
 		}
 			
@@ -148,7 +146,7 @@ class Content
 			var yearStr:string	= year + "/";
 			var monthStr:string	= ( month < 10 ) ? "0" + month + "/" : month + "/";
 			var dayStr:string	= ( day < 10 ) ? "0" + day + "/" : day + "/";
-			this.url 			= yearStr + monthStr + dayStr + this.name + "/index.html";
+			this.url 			= yearStr + monthStr + dayStr + this.name;
 		}
 		else
 		{

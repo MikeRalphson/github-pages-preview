@@ -361,7 +361,7 @@ function _savePostsAndPages( destRoot:string ):Promise<void>
 		// add them to the sequence
 		sequence = sequence.then( function() {
 			_ensureDirs( post.url, destRoot );
-			return _saveContent( post, post.filePath, Path.join( destRoot, post.url ) );
+			return _saveContent( post, post.filePath, Path.join( destRoot, post.url, "index.html" ) );
 		});
 	});
 	
@@ -371,7 +371,7 @@ function _savePostsAndPages( destRoot:string ):Promise<void>
 		// add them to the sequence
 		sequence = sequence.then( function(){
 			_ensureDirs( page.url, destRoot );
-			return _saveContent( page, page.filePath, Path.join( destRoot, page.url ) );
+			return _saveContent( page, page.filePath, Path.join( destRoot, page.url, "index.html" ) );
 		});
 	});
 	
