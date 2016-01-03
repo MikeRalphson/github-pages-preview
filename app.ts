@@ -44,8 +44,14 @@ function run():void
 	layouts = _readLayouts();
 	_readContents( "_posts", context.site.posts );
 	_readContents( "pages", context.site.pages );
-	log.info( Object.keys( layouts ).length + " layouts, " + context.site.posts.length + " posts, and " + context.site.pages.length + " pages were read. A total of " + Object.keys( context.site.tags ).length + " tags were found" );
 	
+	// set the size of our tags array - as our tags page uses site.tags.size, but as it's an object
+	// it doesn't actually have this variable name. This is a bit of a hack, but I tested it on
+	// actual Jekyll, and if you have a tag named "size" in a post, it won't build
+	var numTags 				= Object.keys( context.site.tags ).length;
+	context.site.tags["size"] 	= numTags;
+	log.info( Object.keys( layouts ).length + " layouts, " + context.site.posts.length + " posts, and " + context.site.pages.length + " pages were read. A total of " + numTags + " tags were found" );
+		
 	// convert our content
 	log.debug( "Parsing liquid tags in our content" );
 	_convertPostsAndPages().then( function(){
@@ -287,8 +293,8 @@ function _extractTags( content:Content ):void
 		var t:string = content.tags[i];
 		if( t in context.site.tags )
 		{
-			context.site.tags[t].push( content );
-			context.site.tags[t].sort( _sortContent );
+			(<Content[]>context.site.tags[t]).push( content );
+			(<Content[]>context.site.tags[t]).sort( _sortContent );
 		}
 		else
 			context.site.tags[t] = [content];

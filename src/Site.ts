@@ -49,7 +49,7 @@ class Site
 	/**
 	 * All the tags for the site
 	 */
-	public tags:{ [tag:string]:Content[] } = {};
+	public tags:{ [tag:string]:Content[]|number } = {}; // the number one is for the size property
 	
 	/************************************************************/
 	
