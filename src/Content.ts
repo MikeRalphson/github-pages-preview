@@ -56,11 +56,6 @@ class Content
 	public tags:string[] = [];
 	
 	/**
-	 * Is this a HTML file?
-	 */
-	public isHTMLFile:boolean = false;
-	
-	/**
 	 * Does the page have any special instructions for when we're generating the sitemap?
 	 */
 	public sitemap:{ lastmod:string, priority:number, changefreq:string } = null;
@@ -122,8 +117,7 @@ class Content
 		a 				= this.filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)/ );
 		if( a != null )
 		{
-			this.isHTMLFile	= true;
-			this.name 		= a[4];
+			this.name = a[4];
 			if( this.date == null )
 				this.date = new Date( Number( a[1] ), Number( a[2] ) - 1, Number( a[3] ) );
 				
