@@ -362,6 +362,37 @@ function _saveContents( contents:Content[], root:string ):void
 	}
 }
 
+// saves some content with possible frontmatter layout (assumes directories have been created)
+function _saveContent( content:Content, path:string, destPath:string ):void
+{
+	// failsafe
+	if( content == null )
+	{
+		log.error( "Can't save some content in path " + destPath + " as null was passed" );
+		return;
+	}
+	
+	// check if we have front matter, as we'll probably have to convert something
+	if( content.frontMatter != null )
+	{
+		// check if we have a layout
+		var layout:string = ( content.frontMatter.layout != null ) ? layouts[content.frontMatter.layout] : null;
+		if( layout != null )
+		{
+			log.info( "Converting layout" );
+		}
+		else
+		{
+			// we don't have a layout, so just parse the file and save it
+			_convertContent( content ).then( function( c:Content ){
+				FS.writeFileSync( destPath, c.content, yamlConfig.encoding );
+			});
+		}
+	}
+	else
+		_copyFile( path, destPath ); // just copy the file
+}
+
 // copies all the other files necessary
 function _copyAllOtherFiles( dir:string ):void
 {
@@ -406,19 +437,7 @@ function _copyAllOtherFiles( dir:string ):void
 			
 			// read the file
 			var content:Content = _readContent( dir, filename );
-			if( content != null && content.frontMatter )
-			{
-				// NOTE: as this uses promises, we also need to wrap the call so we don't kill the process too early
-				liquidEngine.parseAndRender( content.content, siteObj ).then( function ( result ){
-					
-					// log.info( "In then for " + filename)
-					// log.info( result );
-				}).catch( function( c ){
-					log.error( "Catch for " + filename, c );
-				})
-			}
-			else if( content != null )
-				_copyFile( path, destPath );
+			_saveContent( content, path, destPath );
 		}
 	});	
 }
