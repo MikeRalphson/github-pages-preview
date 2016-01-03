@@ -25,7 +25,6 @@ var log:Bunyan.Logger 									= null; // our logger
 var yamlConfig:YAMLConfig								= null; // our parsed yaml config
 var context:{ site:Site, page:Content, content:string }	= null; // the context for passing to liquid parsing
 var layouts:{ [name:string]:string }					= null; // all the layouts that we're handling
-var numContentToConvert:number							= 0;	// the number of content files to convert
 	
 /************************************************************/
 
@@ -50,15 +49,7 @@ function run():void
 	// convert our content
 	log.debug( "Parsing liquid tags in our content" );
 	_convertPostsAndPages().then( function(){ // technically this returns a Content object, but we don't care
-	
-		// if numContentToConvert isn't 0, then some of our files didn't convert
-		if( numContentToConvert > 0 )
-		{
-			log.error( numContentToConvert + " file(s) didn't properly parse - aborting" );
-			process.exit();
-			return;
-		}
-		
+			
 		// clear any previous output
 		var destDir = Path.join( config.src.path, yamlConfig.destination );
 		_rmrfDir( destDir );
@@ -77,7 +68,9 @@ function run():void
 		log.info( "JekyllJS build finished!" );
 		// process.exit();
 	}).catch( function( e ){
-		log.error( "Error in run:" + typeof( e ), e)
+		log.error( "Aborting build as one of our files didn't parse properly" );
+		process.exit();
+		return;
 	})
 }
 run();
@@ -302,9 +295,6 @@ function _convertPostsAndPages():Promise<Content>
 	// as this uses promises, we need to chain the whole thing
 	var sequence = Promise.resolve<Content>();
 	
-	// store the number of files we need to convert
-	numContentToConvert = context.site.posts.length + context.site.pages.length;
-	
 	// go through all our posts
 	context.site.posts.forEach( function( post:Content ){
 		
@@ -334,11 +324,11 @@ function _convertContent( content:Content ):Promise<Content>
 		
 		// save the converted result back to the content (as it can be used later if it's included anywhere)
 		log.debug( "Finished parsing liquid in " + content.filename );
-		numContentToConvert--; // only necessary when we're converting the pages/posts
 		content.content = result;
 		return content;
 	}).catch( function( e ){
 		log.error( "Couldn't parse liquid in " + content.filename, e );
+		throw e;
 	})
 }
 
