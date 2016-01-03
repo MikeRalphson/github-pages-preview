@@ -1,4 +1,5 @@
 /// <reference path='../typings/tsd.d.ts' />
+import Path	= require( 'path' );
 import YAML	= require( 'js-yaml' );
 
 /**
@@ -8,6 +9,11 @@ class Content
 {
 	
 	/************************************************************/
+	
+	/**
+	 * The original path for this content
+	 */
+	public filePath:string = null;
 	
 	/**
 	 * The front matter for the content
@@ -62,6 +68,15 @@ class Content
 	/************************************************************/
 	
 	/**
+	 * Creates a new Content object
+	 * @param filePath The path of the content
+	 */
+	constructor( filePath:string )
+	{
+		this.filePath = filePath;
+	}
+	
+	/**
 	 * Reads our content from file
 	 */
 	public readFromFile( filename:string, file:string ):void
@@ -99,6 +114,8 @@ class Content
 				if( this.frontMatter.permalink.lastIndexOf( "/" ) != this.frontMatter.permalink.length - 1 )
 					this.frontMatter.permalink += "/";
 				this.url = this.frontMatter.permalink;
+				if( this.url.indexOf( ".htm" ) == -1 )
+					this.url = Path.join( this.url, "index.html" );
 			}
 		}
 			
@@ -131,7 +148,7 @@ class Content
 			var yearStr:string	= year + "/";
 			var monthStr:string	= ( month < 10 ) ? "0" + month + "/" : month + "/";
 			var dayStr:string	= ( day < 10 ) ? "0" + day + "/" : day + "/";
-			this.url 			= yearStr + monthStr + dayStr + this.name;
+			this.url 			= yearStr + monthStr + dayStr + this.name + "/index.html";
 		}
 		else
 		{
