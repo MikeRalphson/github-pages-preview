@@ -338,6 +338,8 @@ function _convertPostsAndPages():Promise<void>
 // converts a single content, returning a Promise
 function _convertContent( content:Content ):Promise<void>
 {
+	context.page 	= content;
+	context.content	= content.content;
 	return liquidEngine.parseAndRender( content.content, context ).then( function( result ){
 		
 		// save the converted result back to the content (as it can be used later if it's included anywhere)
@@ -483,8 +485,8 @@ function _copyAllOtherFiles( dir:string, sequence:Promise<void> ):Promise<void>
 			// read the file
 			var content:Content = _readContent( dir, filename );
 			
-			// special case for the index file
-			if( content.url == "index.html" )
+			// special case for the index file - replace the url
+			if( content.url == "/index.html" )
 				content.url = "/";
 				
 			// if it has frontmatter, add it to our pages list
