@@ -48,17 +48,21 @@ function run():void
 	
 	// convert our content
 	log.debug( "Parsing liquid tags in our content" );
-	_convertPostsAndPages().then( function(){ // technically this returns a Content object, but we don't care
+	_convertPostsAndPages().then( function(){
 			
 		// clear any previous output
 		var destDir = Path.join( config.src.path, yamlConfig.destination );
 		_rmrfDir( destDir );
 		FS.mkdirSync( destDir );
+		return destDir;
 		
+	}).then( function( destDir:string ){
+				
 		// save our pages/posts
 		log.debug( "Saving site content" );
-		_saveContents( context.site.posts, destDir );
-		_saveContents( context.site.pages, destDir );
+		return _savePostsAndPages( destDir );
+		
+	}).then( function(){
 		
 		// copy the rest of the stuff
 		log.debug( "Saving other site files" );
@@ -67,8 +71,9 @@ function run():void
 		// finished
 		log.info( "JekyllJS build finished!" );
 		// process.exit();
+		
 	}).catch( function( e ){
-		log.error( "Aborting build as one of our files didn't parse properly" );
+		log.error( "Aborting build because an error occurred", e );
 		process.exit();
 		return;
 	})
@@ -290,10 +295,10 @@ function _extractTags( content:Content ):void
 
 // converts our posts and pages, as certain pages (e.g. archive) make use of them, and don't
 // convert twice. So we convert here, and replace the content
-function _convertPostsAndPages():Promise<Content>
+function _convertPostsAndPages():Promise<void>
 {
 	// as this uses promises, we need to chain the whole thing
-	var sequence = Promise.resolve<Content>();
+	var sequence = Promise.resolve<void>();
 	
 	// go through all our posts
 	context.site.posts.forEach( function( post:Content ){
@@ -318,14 +323,13 @@ function _convertPostsAndPages():Promise<Content>
 }
 
 // converts a single content, returning a Promise
-function _convertContent( content:Content ):Promise<Content>
+function _convertContent( content:Content ):Promise<void>
 {
 	return liquidEngine.parseAndRender( content.content, context ).then( function( result ){
 		
 		// save the converted result back to the content (as it can be used later if it's included anywhere)
 		log.debug( "Finished parsing liquid in " + content.filename );
 		content.content = result;
-		return content;
 	}).catch( function( e ){
 		log.error( "Couldn't parse liquid in " + content.filename, e );
 		throw e;
@@ -342,28 +346,43 @@ function _rmrfDir( dir:string ):void
 	}
 }
 
-// goes through and saves all our content
-function _saveContents( contents:Content[], destRoot:string ):void
+
+// saves our posts and pages
+function _savePostsAndPages( destRoot:string ):Promise<void>
 {
-	var len:number = contents.length;
-	for( var i:number = 0; i < len; i++ )
-	{
-		// make sure all the relevant directories exist for the content that we're saving
-		var content:Content = contents[i];
-		_ensureDirs( content.url, destRoot );
-		_saveContent( content, content.filePath, Path.join( destRoot, content.url ) );
-	}
+	// as this uses promises, we need to chain the whole thing
+	var sequence = Promise.resolve<void>();
+	
+	// go through all our posts
+	context.site.posts.forEach( function( post:Content ){
+		
+		// add them to the sequence
+		sequence = sequence.then( function() {
+			_ensureDirs( post.url, destRoot );
+			return _saveContent( post, post.filePath, Path.join( destRoot, post.url ) );
+		});
+	});
+	
+	// add in all our pages
+	context.site.pages.forEach( function( page:Content ){
+		
+		// add them to the sequence
+		sequence = sequence.then( function(){
+			_ensureDirs( page.url, destRoot );
+			return _saveContent( page, page.filePath, Path.join( destRoot, page.url ) );
+		});
+	});
+	
+	// return the promise, which will fulfill when all files are saved
+	return sequence;
 }
 
 // saves some content with possible frontmatter layout (assumes directories have been created)
-function _saveContent( content:Content, path:string, destPath:string ):void
+function _saveContent( content:Content, path:string, destPath:string ):Promise<void>
 {
 	// failsafe
 	if( content == null )
-	{
-		log.error( "Can't save some content in path " + destPath + " as null was passed" );
-		return;
-	}
+		return Promise.reject( new Error( "Can't save some content in path " + destPath + " as null was passed" ) );
 	
 	// check if we have front matter, as we'll probably have to convert something
 	if( content.frontMatter != null )
@@ -374,22 +393,32 @@ function _saveContent( content:Content, path:string, destPath:string ):void
 		{
 			context.page 	= content;
 			context.content	= content.content;
-			liquidEngine.parseAndRender( layout, context ).then( function( result ){
+			return liquidEngine.parseAndRender( layout, context ).then( function( result ){
+				log.debug( "Saving file " + content.url );
 				FS.writeFileSync( destPath, result, yamlConfig.encoding );
 			}).catch( function( e ){
-				log.error( "Couldn't save content " + content.filename, e );
+				log.error( "Couldn't save content " + content.url, e );
+				throw e;
 			})
 		}
 		else
 		{
 			// we don't have a layout, so just parse the file and save it
-			_convertContent( content ).then( function( c:Content ){
-				FS.writeFileSync( destPath, c.content, yamlConfig.encoding );
-			});
+			return _convertContent( content ).then( function(){
+				log.debug( "Saving file " + content.url );
+				FS.writeFileSync( destPath, content.content, yamlConfig.encoding );
+			}).catch( function( e ){
+				log.error( "Couldn't save content " + content.url, e );
+				throw e;
+			})
 		}
 	}
 	else
+	{
+		log.debug( "Saving file " + content.url );
 		_copyFile( path, destPath ); // just copy the file
+		return Promise.resolve<void>();
+	}
 }
 
 // copies all the other files necessary
