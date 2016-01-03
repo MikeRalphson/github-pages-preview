@@ -62,6 +62,7 @@ function run():void
 		// clear any previous output
 		var destDir = Path.join( config.src.path, yamlConfig.destination );
 		_rmrfDir( destDir );
+		FS.mkdirSync( destDir );
 		
 		// save our pages/posts
 		log.debug( "Saving site content" );
@@ -468,6 +469,10 @@ function _ensureDirs( path:string, root:string ):void
 	var len:number		= parts.length;
 	for( var i = 0; i < len; i++ )
 	{
+		// the last part might be index.html, so we ignore creating a directory for that
+		if( i == len - 1 && parts[i].indexOf( "." ) != -1 )
+			return;
+			
 		curr 	+= parts[i] + Path.sep;
 		curr	= Path.normalize( curr );
 		if( !FS.existsSync( curr ) )
