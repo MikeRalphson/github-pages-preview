@@ -520,5 +520,5 @@ function _ensureDirs( path:string, root:string ):void
 // the function used for sorting an array of content objects
 function _sortContent( a:Content, b:Content ):number
 {
-	return a.date.getTime() - b.date.getTime();
+	return b.date.getTime() - a.date.getTime(); // most recent first
 }
