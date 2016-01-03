@@ -186,6 +186,11 @@ function _createLiquidEngine():void
 		// escapes HTML chars so they can be used in XML
 		"xml_escape": function( input:string ):string {			
 			return input.replace( escapeRE, escapeReplace );
+		},
+		
+		// escapes chars for use in a url
+		"cgi_escape": function( input:string ):string {
+			return encodeURIComponent( input ).replace( /%20/g, "+" );
 		}
 	});
 	
