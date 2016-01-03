@@ -480,9 +480,15 @@ function _copyAllOtherFiles( dir:string, sequence:Promise<void> ):Promise<void>
 			var destPath:string 	= Path.join( destDir, filename );
 			_ensureDirs( Path.relative( destRootDir, destDir ), destRootDir );
 			
-			// read the file, and save it (using our promise sequence)
+			// read the file
 			var content:Content = _readContent( dir, filename );
-			sequence			= sequence.then( function(){
+			
+			// special case for the index file
+			if( content.url == "index.html" )
+				content.url = "/";
+				
+			// save the file (using our promise sequence)
+			sequence = sequence.then( function(){
 				return _saveContent( content, path, destPath );
 			});
 		}
