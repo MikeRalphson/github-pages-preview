@@ -186,6 +186,11 @@ function _createLiquidEngine():void
 	
 	// add in our custom tag for the highlight
 	liquidEngine.registerTag( "highlight", LiquidHighlight );
+	
+	// add a filesystem so we can include files
+	var includePath:string 			= Path.join( config.src.path, yamlConfig.includes_dir );
+	var lfs:Liquid.LocalFileSystem	= new Liquid.LocalFileSystem( includePath, "html" );
+	liquidEngine.registerFileSystem( lfs );
 }
 
 // reads the layouts
@@ -403,9 +408,6 @@ function _copyAllOtherFiles( dir:string ):void
 			var content:Content = _readContent( dir, filename );
 			if( content != null && content.frontMatter )
 			{
-				// TODO: deal with liquid
-				// NOTE: need to register filters (xml_escape etc)
-				// NOTE: doesn't seem to handle includes? BlankFileSystem
 				// NOTE: as this uses promises, we also need to wrap the call so we don't kill the process too early
 				liquidEngine.parseAndRender( content.content, siteObj ).then( function ( result ){
 					
