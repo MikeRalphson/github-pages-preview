@@ -66,11 +66,13 @@ function run():void
 		
 		// copy the rest of the stuff
 		log.debug( "Saving other site files" );
-		_copyAllOtherFiles( config.src.path );
+		return _copyAllOtherFiles( config.src.path, null ); // pass null as this is a recursive promise sequence
+		
+	}).then( function(){
 		
 		// finished
 		log.info( "JekyllJS build finished!" );
-		// process.exit();
+		process.exit();
 		
 	}).catch( function( e ){
 		log.error( "Aborting build because an error occurred", e );
@@ -422,8 +424,12 @@ function _saveContent( content:Content, path:string, destPath:string ):Promise<v
 }
 
 // copies all the other files necessary
-function _copyAllOtherFiles( dir:string ):void
+function _copyAllOtherFiles( dir:string, sequence:Promise<void> ):Promise<void>
 {
+	// create our sequence if we need to
+	if( sequence == null )
+		sequence = Promise.resolve<void>();
+	
 	FS.readdirSync( dir ).forEach( function( filename:string ){
 		
 		// get the full path
@@ -453,7 +459,7 @@ function _copyAllOtherFiles( dir:string ):void
 		{
 			if( filename == "pages" )
 				return; // ignore the pages dir, as we're already treating it
-			_copyAllOtherFiles( path );
+			_copyAllOtherFiles( path, sequence );
 		}
 		else
 		{
@@ -463,11 +469,15 @@ function _copyAllOtherFiles( dir:string ):void
 			var destPath:string 	= Path.join( destDir, filename );
 			_ensureDirs( Path.relative( destRootDir, destDir ), destRootDir );
 			
-			// read the file
+			// read the file, and save it (using our promise sequence)
 			var content:Content = _readContent( dir, filename );
-			_saveContent( content, path, destPath );
+			sequence			= sequence.then( function(){
+				return _saveContent( content, path, destPath );
+			});
 		}
 	});	
+	
+	return sequence;
 }
 
 // copies a file from one path to another
