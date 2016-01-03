@@ -374,7 +374,7 @@ function _savePostsAndPages( destRoot:string ):Promise<void>
 		// add them to the sequence
 		sequence = sequence.then( function() {
 			_ensureDirs( post.url, destRoot );
-			return _saveContent( post, post.filePath, Path.join( destRoot, post.url, "index.html" ) );
+			return _saveContent( post, post.path, Path.join( destRoot, post.url, "index.html" ) );
 		});
 	});
 	
@@ -384,7 +384,7 @@ function _savePostsAndPages( destRoot:string ):Promise<void>
 		// add them to the sequence
 		sequence = sequence.then( function(){
 			_ensureDirs( page.url, destRoot );
-			return _saveContent( page, page.filePath, Path.join( destRoot, page.url, "index.html" ) );
+			return _saveContent( page, page.path, Path.join( destRoot, page.url, "index.html" ) );
 		});
 	});
 	
@@ -403,7 +403,7 @@ function _saveContent( content:Content, path:string, destPath:string ):Promise<v
 	if( content.frontMatter != null )
 	{
 		// check if we have a layout
-		var layout:string = ( content.frontMatter.layout != null ) ? layouts[content.frontMatter.layout] : null;
+		var layout:string = ( content.layout != null ) ? layouts[content.layout] : null;
 		if( layout != null )
 		{
 			context.page 	= content;
