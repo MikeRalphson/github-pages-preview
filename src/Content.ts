@@ -13,12 +13,17 @@ class Content
 	/**
 	 * The original path for this content
 	 */
-	public filePath:string = null;
+	public path:string = null;
 	
 	/**
 	 * The front matter for the content
 	 */
 	public frontMatter:FrontMatter = null;
+	
+	/**
+	 * The layout to use for this page/post
+	 */
+	public layout:string = null;
 	
 	/**
 	 * The title for the content
@@ -51,9 +56,39 @@ class Content
 	public url:string = null;
 	
 	/**
+	 * The permalink to use (default is /year/month/day/title.html)
+	 */
+	public permalink:string = null;
+	
+	/**
+	 * Is this post/page published?
+	 */
+	public published:boolean = true;
+	
+	/**
+	 * The category to set this page/post to
+	 */
+	public category:string = null;
+	
+	/**
+	 * If we want to assign multiple categories to the page/post
+	 */
+	public categories:string[] = [];
+	
+	/**
 	 * The tag for this post
 	 */
 	public tags:string[] = [];
+	
+	/**
+	 * Does this page/post have any comments? (found in _includes)
+	 */
+	public hasComments:boolean = false;
+	
+	/**
+	 * Does this page/post have any associated files? (found in _includess)
+	 */
+	public hasFiles:boolean = false;
 	
 	/**
 	 * Does the page have any special instructions for when we're generating the sitemap?
@@ -68,7 +103,7 @@ class Content
 	 */
 	constructor( filePath:string )
 	{
-		this.filePath = filePath;
+		this.path = filePath;
 	}
 	
 	/**
@@ -90,25 +125,20 @@ class Content
 		// update our vars from our front matter, if we have some
 		if( this.frontMatter != null )
 		{
-			// copy our title
-			this.title = this.frontMatter.title;
+			// copy our front matter properties
+			for( var key in this.frontMatter )
+				this[key] = this.frontMatter[key];
 			
-			// copy our tags
-			this.tags = this.frontMatter.tags;
-			
-			// copy our sitemap
-			this.sitemap = this.frontMatter.sitemap;
-			
-			// set our date
+			// set our date as a Date object
 			if( this.frontMatter.date != null )
 				this.date = new Date( this.frontMatter.date );
 			
 			// set our url
-			if( this.frontMatter.permalink != null )
+			if( this.permalink != null )
 			{
-				if( this.frontMatter.permalink.lastIndexOf( "/" ) != this.frontMatter.permalink.length - 1 )
-					this.frontMatter.permalink += "/";
-				this.url = this.frontMatter.permalink;
+				if( this.permalink.lastIndexOf( "/" ) != this.permalink.length - 1 )
+					this.permalink += "/";
+				this.url = this.permalink;
 			}
 		}
 			
