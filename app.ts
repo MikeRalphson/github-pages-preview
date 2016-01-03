@@ -19,13 +19,13 @@ var Promise				= RSVP.Promise;
 /************************************************************/
 
 // declare our vars
-var liquidEngine:Liquid.Engine			= null;
-var config:ConfigHelper					= null;
-var log:Bunyan.Logger 					= null;
-var yamlConfig:YAMLConfig				= null;
-var siteObj:{ site:Site }				= null;
-var layouts:{ [name:string]:string }	= null;
-var numContentToConvert:number			= 0;
+var liquidEngine:Liquid.Engine							= null; // the engine for parsing our liquid tags
+var config:ConfigHelper									= null; // the object for reading our config
+var log:Bunyan.Logger 									= null; // our logger
+var yamlConfig:YAMLConfig								= null; // our parsed yaml config
+var context:{ site:Site, page:Content, content:string }	= null; // the context for passing to liquid parsing
+var layouts:{ [name:string]:string }					= null; // all the layouts that we're handling
+var numContentToConvert:number							= 0;	// the number of content files to convert
 	
 /************************************************************/
 
@@ -43,13 +43,13 @@ function run():void
 	// load our pages etc
 	log.debug( "Reading content" );
 	layouts = _readLayouts();
-	_readContents( "_posts", siteObj.site.posts );
-	_readContents( "pages", siteObj.site.pages );
-	log.info( Object.keys( layouts ).length + " layouts, " + siteObj.site.posts.length + " posts, and " + siteObj.site.pages.length + " pages were read. A total of " + Object.keys( siteObj.site.tags ).length + " tags were found" );
+	_readContents( "_posts", context.site.posts );
+	_readContents( "pages", context.site.pages );
+	log.info( Object.keys( layouts ).length + " layouts, " + context.site.posts.length + " posts, and " + context.site.pages.length + " pages were read. A total of " + Object.keys( context.site.tags ).length + " tags were found" );
 	
 	// convert our content
 	log.debug( "Parsing liquid tags in our content" );
-	_convertContents().then( function(){ // technically this returns a Content object, but we don't care
+	_convertPostsAndPages().then( function(){ // technically this returns a Content object, but we don't care
 	
 		// if numContentToConvert isn't 0, then some of our files didn't convert
 		if( numContentToConvert > 0 )
@@ -66,8 +66,8 @@ function run():void
 		
 		// save our pages/posts
 		log.debug( "Saving site content" );
-		_saveContents( siteObj.site.posts, destDir );
-		_saveContents( siteObj.site.pages, destDir );
+		_saveContents( context.site.posts, destDir );
+		_saveContents( context.site.pages, destDir );
 		
 		// copy the rest of the stuff
 		log.debug( "Saving other site files" );
@@ -128,8 +128,8 @@ function _readYAMLConfig():void
 // creates our site object
 function _createSite():void
 {
-	siteObj = { site:new Site() };
-	siteObj.site.updateFromYAML( yamlConfig );
+	context = { site:new Site(), page:null, content:null };
+	context.site.updateFromYAML( yamlConfig );
 }
 
 // creates our liquid engine, which will parse our liquid tags
@@ -218,7 +218,8 @@ function _readLayouts():{ [name:string]:string }
 		}
 		
 		var contentsRaw:string 	= FS.readFileSync( Path.join( path, filename ), yamlConfig.encoding );
-		layouts[filename]		= contentsRaw;
+		var layoutName:string	= filename.substring( 0, filename.lastIndexOf( "." ) );
+		layouts[layoutName]		= contentsRaw;
 	});
 	
 	return layouts;
@@ -286,27 +287,28 @@ function _extractTags( content:Content ):void
 	for( var i = 0; i < len; i++ )
 	{
 		var t:string = content.tags[i];
-		if( t in siteObj.site.tags )
+		if( t in context.site.tags )
 		{
-			siteObj.site.tags[t].push( content );
-			siteObj.site.tags[t].sort( _sortContent );
+			context.site.tags[t].push( content );
+			context.site.tags[t].sort( _sortContent );
 		}
 		else
-			siteObj.site.tags[t] = [content];
+			context.site.tags[t] = [content];
 	}
 }
 
-// converts our content, using the liquid tags
-function _convertContents():Promise<Content>
+// converts our posts and pages, as certain pages (e.g. archive) make use of them, and don't
+// convert twice. So we convert here, and replace the content
+function _convertPostsAndPages():Promise<Content>
 {
 	// as this uses promises, we need to chain the whole thing
 	var sequence = Promise.resolve<Content>();
 	
 	// store the number of files we need to convert
-	numContentToConvert = siteObj.site.posts.length + siteObj.site.pages.length;
+	numContentToConvert = context.site.posts.length + context.site.pages.length;
 	
 	// go through all our posts
-	siteObj.site.posts.forEach( function( post:Content ){
+	context.site.posts.forEach( function( post:Content ){
 		
 		// add them to the sequence
 		sequence = sequence.then( function() {
@@ -315,7 +317,7 @@ function _convertContents():Promise<Content>
 	});
 	
 	// add in all our pages
-	siteObj.site.pages.forEach( function( page:Content ){
+	context.site.pages.forEach( function( page:Content ){
 		
 		// add them to the sequence
 		sequence = sequence.then( function(){
@@ -330,7 +332,7 @@ function _convertContents():Promise<Content>
 // converts a single content, returning a Promise
 function _convertContent( content:Content ):Promise<Content>
 {
-	return liquidEngine.parseAndRender( content.content, siteObj ).then( function( result ){
+	return liquidEngine.parseAndRender( content.content, context ).then( function( result ){
 		
 		// save the converted result back to the content (as it can be used later if it's included anywhere)
 		log.debug( "Finished parsing liquid in " + content.filename );
@@ -353,13 +355,15 @@ function _rmrfDir( dir:string ):void
 }
 
 // goes through and saves all our content
-function _saveContents( contents:Content[], root:string ):void
+function _saveContents( contents:Content[], destRoot:string ):void
 {
 	var len:number = contents.length;
 	for( var i:number = 0; i < len; i++ )
 	{
+		// make sure all the relevant directories exist for the content that we're saving
 		var content:Content = contents[i];
-		_ensureDirs( content.url, root );
+		_ensureDirs( content.url, destRoot );
+		_saveContent( content, content.filePath, Path.join( destRoot, content.url ) );
 	}
 }
 
@@ -380,7 +384,13 @@ function _saveContent( content:Content, path:string, destPath:string ):void
 		var layout:string = ( content.frontMatter.layout != null ) ? layouts[content.frontMatter.layout] : null;
 		if( layout != null )
 		{
-			log.info( "Converting layout" );
+			context.page 	= content;
+			context.content	= content.content;
+			liquidEngine.parseAndRender( layout, context ).then( function( result ){
+				FS.writeFileSync( destPath, result, yamlConfig.encoding );
+			}).catch( function( e ){
+				log.error( "Couldn't save content " + content.filename, e );
+			})
 		}
 		else
 		{
