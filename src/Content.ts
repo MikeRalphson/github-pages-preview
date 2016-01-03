@@ -147,7 +147,7 @@ class Content
 			if( this.date == null )
 				this.date = new Date();
 			if( this.url == null )
-				this.url = filename;
+				this.url = "/" + filename;
 		}
 	}
 	

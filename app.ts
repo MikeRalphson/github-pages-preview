@@ -487,6 +487,10 @@ function _copyAllOtherFiles( dir:string, sequence:Promise<void> ):Promise<void>
 			if( content.url == "index.html" )
 				content.url = "/";
 				
+			// if it has frontmatter, add it to our pages list
+			if( content.frontMatter != null )
+				context.site.pages.push( content );
+				
 			// save the file (using our promise sequence)
 			sequence = sequence.then( function(){
 				return _saveContent( content, path, destPath );
