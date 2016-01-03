@@ -38,16 +38,19 @@ class LiquidHighlight extends Liquid.Block
 			
 			var str:string = Liquid.Helpers.toFlatString( ar );
 			
+			// NOTE: we're wrapping the resulting code in a div with a "highlight" class, as that
+			// seems to match the behaviour of the jekyll pygments parser
+			
 			// if we don't have a language, don't do anything
 			if( lh._lang == null )
-				return "<pre><code class=\"nohighlight\">" + str + "</code></pre>";
+				return "<div class=\"highlight\"><pre><code class=\"nohighlight\">" + str + "</code></pre></div>";
 				
 			// get the language class
 			var clazz:string = ( lh._lang == "as3" ) ? "actionscript" : lh._lang; // special case as highlight.js uses "actionscript/as" instead of "as3"
 			
 			// highlight our code and wrap it in <pre><code> tags
 			str = HLJS.highlight( clazz, str, true ).value;
-			return "<pre><code class=\"language-" + clazz + "\">" + str + "</code></pre>";
+			return "<div class=\"highlight\"><pre><code class=\"language-" + clazz + "\">" + str + "</code></pre></div>";
 		});
 	}
 }
