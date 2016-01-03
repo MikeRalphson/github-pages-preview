@@ -183,8 +183,6 @@ function _createLiquidEngine():void
 		}
 	});
 	
-	LiquidHighlight.log = log;
-	
 	// add in our custom tag for the highlight
 	liquidEngine.registerTag( "highlight", LiquidHighlight );
 	

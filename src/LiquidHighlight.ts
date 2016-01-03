@@ -1,5 +1,4 @@
 
-import Bunyan	= require( 'bunyan' );
 import RSVP		= require( 'es6-promise' );
 import HLJS		= require( 'highlight.js' );
 import Liquid 	= require( 'liquid-node' );
@@ -7,10 +6,6 @@ var Promise		= RSVP.Promise;
 
 class LiquidHighlight extends Liquid.Block
 {
-	
-	/************************************************************/
-
-	public static log:Bunyan.Logger = null;
 	
 	/************************************************************/
 	
