@@ -46,7 +46,7 @@ class LiquidHighlight extends Liquid.Block
 				return "<div class=\"highlight\"><pre><code class=\"nohighlight\">" + str + "</code></pre></div>";
 				
 			// get the language class
-			var clazz:string = ( lh._lang == "as3" ) ? "actionscript" : lh._lang; // special case as highlight.js uses "actionscript/as" instead of "as3"
+			var clazz:string = ( lh._lang == "as3" ) ? "as" : lh._lang; // special case as highlight.js uses "actionscript/as" instead of "as3"
 			
 			// highlight our code and wrap it in <pre><code> tags
 			str = HLJS.highlight( clazz, str, true ).value;
