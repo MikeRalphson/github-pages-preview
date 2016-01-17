@@ -281,7 +281,7 @@ function _readContent( path:string, filename:string ):Content
 	
 	// read the file
 	var contentsRaw:string 	= FS.readFileSync( filePath, yamlConfig.encoding );
-	var content:Content 	= new Content( filePath );
+	var content:Content 	= new Content( Path.relative( config.src.path, filePath ) );
 	content.readFromFile( filename, contentsRaw );
 	return content;
 }

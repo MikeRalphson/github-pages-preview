@@ -103,7 +103,7 @@ class Content
 	 */
 	constructor( filePath:string )
 	{
-		this.path = filePath;
+		this.path = filePath.replace( /\\\\?/g, "/" ); // make sure our path is forward-slashed
 	}
 	
 	/**
