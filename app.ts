@@ -28,6 +28,7 @@ var yamlConfig:YAMLConfig								= null; // our parsed yaml config
 var context:{ site:Site, page:Content, content:string }	= null; // the context for passing to liquid parsing
 var layouts:{ [name:string]:string }					= null; // all the layouts that we're handling
 var isServing:boolean									= false;// are we serving the files locally?
+var startTime:Date										= null;
 	
 /************************************************************/
 
@@ -36,6 +37,7 @@ var isServing:boolean									= false;// are we serving the files locally?
  */
 function run():void
 {
+	startTime = new Date();
 	_readToolConfig();
 	_createLog();
 	_readYAMLConfig();
@@ -90,8 +92,24 @@ function run():void
 		
 	}).then( function(){
 		
-		// finished
-		log.info( "JekyllJS build finished!" );
+		// we're finished - log the time it took
+		var totalTimeMS:number 	= ( ( new Date() ).getTime() - startTime.getTime() );
+		var totalTimeS:number	= Math.floor( totalTimeMS / 1000 );
+		var msg:string			= "JekyllJS build finished in";
+		var mins:number			= 0;
+		if( totalTimeS >= 60 )
+		{
+			mins		= Math.floor( totalTimeS / 60 );
+			totalTimeS	-= 60 * mins;
+			msg			+= ( mins == 1 ) ? " 1 min" : " " + mins + " mins";
+		}
+		if( totalTimeS > 0 )
+			msg += ( totalTimeS == 1 ) ? " 1 second!" : " " + totalTimeS + " seconds!";
+		else if( mins == 0 )
+			msg += " no time at all!"
+		log.info( msg );
+			
+		// if we're also serving the site, start our server
 		if( isServing )
 		{
 			log.info( "Starting local server" );
