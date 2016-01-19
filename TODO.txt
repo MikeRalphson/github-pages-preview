@@ -1,6 +1,5 @@
 * Dates not saving right (applying the +0100 to the output - jekyll doesn't)
 * CSS needs to be updated for the highlight.js code
-* Have a server option that starts up a server
 * Inline actionscript script tags need to be changed so they can be handled by highlightjs
 
 ========== DONE ==========
@@ -8,3 +7,4 @@
 * Files aren't included
 * Including comments and files breaks because the {% include %} tag doesn't parse tokens
 * Comments might not possibly work for the index file (check frontPagePost is undefined rather than null)
+* Have a server option that starts up a server
