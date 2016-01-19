@@ -4,7 +4,9 @@ require('es6-promise').polyfill(); // auto-polyfill entire Node environment for 
 import Bunyan			= require( 'bunyan' );
 import DateFormat		= require( 'dateformat' );
 import FS				= require( 'fs' );
+import HTTP				= require( 'http' );
 import Liquid			= require( 'liquid-node' );
+import NodeStatic		= require( 'node-static' );
 import Path				= require( 'path' );
 import RMRF				= require( 'rimraf' );
 import RSVP				= require( 'es6-promise' );
@@ -25,6 +27,7 @@ var log:Bunyan.Logger 									= null; // our logger
 var yamlConfig:YAMLConfig								= null; // our parsed yaml config
 var context:{ site:Site, page:Content, content:string }	= null; // the context for passing to liquid parsing
 var layouts:{ [name:string]:string }					= null; // all the layouts that we're handling
+var isServing:boolean									= false;// are we serving the files locally?
 	
 /************************************************************/
 
@@ -36,8 +39,19 @@ function run():void
 	_readToolConfig();
 	_createLog();
 	_readYAMLConfig();
-	_createSite();
+	_createContext();
 	_createLiquidEngine();
+	
+	// check if we're serving the site or just generating it
+	if( process.argv.length > 2 && process.argv[2] === "serve" )
+		isServing = true;
+		
+	// if we're serving the site, then change the config
+	if( isServing )
+	{
+		context.site.url = "http://localhost:" + config.server.port;
+		log.debug( "We're serving the site; changing the site url to " + context.site.url );
+	}
 	
 	// load our pages etc
 	log.debug( "Reading content" );
@@ -65,19 +79,27 @@ function run():void
 	}).then( function( destDir:string ){
 				
 		// save our pages/posts
-		log.debug( "Saving site content" );
+		log.info( "Saving site content" );
 		return _savePostsAndPages( destDir );
 		
 	}).then( function(){
 		
 		// copy the rest of the stuff
-		log.debug( "Saving other site files" );
+		log.info( "Saving other site files" );
 		return _copyAllOtherFiles( config.src.path, null ); // pass null as this is a recursive promise sequence
 		
 	}).then( function(){
 		
 		// finished
 		log.info( "JekyllJS build finished!" );
+		if( isServing )
+		{
+			log.info( "Starting local server" );
+			_createServer();
+			return;
+		}
+		
+		// we're not serving the site, so we can just quit the process	
 		process.exit();
 		
 	}).catch( function( e ){
@@ -131,8 +153,8 @@ function _readYAMLConfig():void
 	log.debug( "YAML config:", yamlConfig );
 }
 
-// creates our site object
-function _createSite():void
+// creates our context object
+function _createContext():void
 {
 	context = { site:new Site(), page:null, content:null };
 	context.site.updateFromYAML( yamlConfig );
@@ -544,4 +566,81 @@ function _ensureDirs( path:string, root:string ):void
 function _sortContent( a:Content, b:Content ):number
 {
 	return b.date.getTime() - a.date.getTime(); // most recent first
+}
+
+// the function to start our static server to server our site
+function _createServer():void
+{
+	var serverDir:string = Path.join( config.src.path, yamlConfig.destination );
+	
+	// create our file server config
+	var file = new NodeStatic.Server( serverDir, {
+		cache:0,	// no cache for our files
+		gzip:true	// gzip our assets
+	});
+	
+	// check to see if our 404 page exists
+	if( config.src.fourOhFour != null )
+	{
+		var path404:string 	= Path.join( serverDir, config.src.fourOhFour );
+		var exists:boolean	= FS.existsSync( path404 );
+		if( !exists )
+		{
+			log.error( "The 404 path specified (" + path404 + ") doesn't exist" );
+			config.src.fourOhFour = null;
+		}
+		else if( FS.statSync( path404 ).isDirectory() )
+		{
+			if( config.src.fourOhFour.charAt( config.src.fourOhFour.length - 1 ) == "/" )
+				config.src.fourOhFour += "index.html";
+			else
+				config.src.fourOhFour += "/index.html";
+		}
+		
+		// make sure it starts in a slash
+		if( config.src.fourOhFour != null && config.src.fourOhFour.charAt( 0 ) != "/" )
+			config.src.fourOhFour = "/" + config.src.fourOhFour;
+	}
+	
+	// create our basic server
+	HTTP.createServer( function( request, response ){
+		request.addListener( 'end', function() {
+			
+			// get our file server to serve the file
+			file.serve( request, response, function( err, result ){
+				
+				if( err )
+				{
+					log.error( "There was an error getting " + request.url + " - " + err.message );
+					
+					// if we're trying to get a path, and we've a 404 defined, serve that instead
+					if( config.src.fourOhFour != null && ( request.url.indexOf( ".html" ) != -1  || request.url.charAt( request.url.length - 1 ) == "/" ) && err.status == 404 )
+						file.serveFile( config.src.fourOhFour, 404, {}, request, response );
+					else
+					{
+						response.writeHead( err.status, err.headers );
+						response.end();
+					}
+				}
+			});
+		}).resume();
+	}).listen( config.server.port );
+	
+	// fileServer.serve(request, response, function (e, res) {
+    //         if (e && (e.status === 404)) { // If the file wasn't found
+    //             fileServer.serveFile('/not-found.html', 404, {}, request, response);
+    //         }
+    //     });
+		
+	// 	fileServer.serve(request, response, function (err, result) {
+    //         if (err) { // There was an error serving the file
+    //             console.error("Error serving " + request.url + " - " + err.message);
+
+    //             // Respond to the client
+    //             response.writeHead(err.status, err.headers);
+    //             response.end();
+    //         }
+    //     });
+	
+	log.info( "Local server started at " + context.site.url );
 }

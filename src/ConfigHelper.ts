@@ -5,8 +5,9 @@ class ConfigHelper
 {
 	/************************************************************/
 	
-	private m_log:{ level:string }	= null;	// the config for our log
-	private m_src:{ path:string } 	= null; // the config for our src dir
+	private m_log:{ level:string }						= null;	// the config for our log
+	private m_src:{ path:string, fourOhFour:string } 	= null; // the config for our src dir
+	private m_server:{ port:number }					= null;	// the config for our serving port
 	
 	/************************************************************/
 	
@@ -18,7 +19,12 @@ class ConfigHelper
 	/**
 	 * The config for our src dir
 	 */
-	public get src():{ path:string } { return this.m_src; }
+	public get src():{ path:string, fourOhFour:string } { return this.m_src; }
+	
+	/**
+	 * The config for our server
+	 */
+	public get server():{ port:number } { return this.m_server; }
 	
 	/************************************************************/
 	
@@ -29,6 +35,7 @@ class ConfigHelper
 	{
 		this._parseLogConfig();
 		this._parseSrcConfig();
+		this._parseServerConfig();
 	}
 	
 	/************************************************************/
@@ -59,9 +66,23 @@ class ConfigHelper
 	// parses our src dir config
 	private _parseSrcConfig():void
 	{
-		this.m_src = { path:"" };
+		this.m_src = { path:"", fourOhFour:null };
 		if( Config.has( "src.path" ) )
 			this.m_src.path = Config.get<string>( "src.path" );
+		if( Config.has( "src.404" ) )
+			this.m_src.fourOhFour = Config.get<string>( "src.404" );
+	}
+	
+	// parses our server config
+	private _parseServerConfig():void
+	{
+		this.m_server = { port:4000 };
+		if( Config.has( "server.port" ) )
+		{
+			var port:number = Number( Config.get<number>( "server.port" ) );
+			if( !isNaN( port ) )
+				this.m_server.port = port;
+		}
 	}
 	
 }
