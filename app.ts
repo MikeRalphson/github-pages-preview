@@ -235,6 +235,7 @@ function _createLiquidEngine():void
 	});
 	
 	// add in our custom tag for the highlight
+	LiquidHighlight.highlightConfig = config.highlight;
 	liquidEngine.registerTag( "highlight", LiquidHighlight );
 	
 	// add a filesystem so we can include files

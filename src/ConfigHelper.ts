@@ -5,9 +5,10 @@ class ConfigHelper
 {
 	/************************************************************/
 	
-	private m_log:{ level:string }						= null;	// the config for our log
-	private m_src:{ path:string, fourOhFour:string } 	= null; // the config for our src dir
-	private m_server:{ port:number }					= null;	// the config for our serving port
+	private m_log:{ level:string }										= null;	// the config for our log
+	private m_src:{ path:string, fourOhFour:string } 					= null; // the config for our src dir
+	private m_highlight:{ parentClassName:string, shouldWrap:boolean }	= null; // the config for our highlight tags
+	private m_server:{ port:number }									= null;	// the config for our serving port
 	
 	/************************************************************/
 	
@@ -20,6 +21,11 @@ class ConfigHelper
 	 * The config for our src dir
 	 */
 	public get src():{ path:string, fourOhFour:string } { return this.m_src; }
+	
+	/**
+	 * The config for our highlighter
+	 */
+	public get highlight():{ parentClassName:string, shouldWrap:boolean } { return this.m_highlight; }
 	
 	/**
 	 * The config for our server
@@ -35,6 +41,7 @@ class ConfigHelper
 	{
 		this._parseLogConfig();
 		this._parseSrcConfig();
+		this._parseHighlightConfig();
 		this._parseServerConfig();
 	}
 	
@@ -71,6 +78,19 @@ class ConfigHelper
 			this.m_src.path = Config.get<string>( "src.path" );
 		if( Config.has( "src.404" ) )
 			this.m_src.fourOhFour = Config.get<string>( "src.404" );
+	}
+	
+	// parses our highlight config
+	private _parseHighlightConfig():void
+	{
+		this.m_highlight = { parentClassName:"highlight", shouldWrap:true };
+		if( Config.has( "highlight.parentClassName" ) )
+			this.m_highlight.parentClassName = Config.get<string>( "highlight.parentClassName" );
+		if( Config.has( "highlight.shouldWrap" ) )
+		{
+			this.m_highlight.shouldWrap = Config.get<boolean>( "highlight.shouldWrap" );
+			this.m_highlight.shouldWrap = ( this.m_highlight.shouldWrap === true );
+		}
 	}
 	
 	// parses our server config

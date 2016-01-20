@@ -1,10 +1,14 @@
 {
 	"log":{
-		"level":"debug"
+		"level":"info"
 	},
 	"src":{
 		"path":"C:/Users/divil/Documents/Coding/Web/Website/dev/",
 		"404":"/404/"
+	},
+	"highlight":{
+		"parentClassName":"highlight",
+		"shouldWrap":true
 	},
 	"server":{
 		"port":4000
