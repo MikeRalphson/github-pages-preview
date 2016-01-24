@@ -60,6 +60,8 @@ JekyllJS is written in [TypeScript](http://www.typescriptlang.org/), and comes w
 
 ```npm install -g typescript```
 
+The js files are included, so you don't need to have TypeScript in order to run JekyllJS.
+
 ## Running JekyllJS ##
 
 To compile your site, make sure the config in *config/default.json* is up to date, then open a command line and type
