@@ -6,8 +6,8 @@ JekyllJS is a Node.js replacement for Jekyll sites, allowing you to build your s
 
 - No need to convert your site - liquid markup is handled using [liquid-node](https://github.com/sirlantis/liquid-node)
 - Near identical output (see *Differences* below)
-- Can optionally serve your site (including 404 page), so you can see your changes
-- Bonus liquid templates for generating a tags page, an archive page, and a RSS feed (found in the *bonus/* folder
+- Can optionally serve your site (including 404 page), so you can see your changes immediately
+- Bonus liquid templates for generating a tags page, an archive page, and a RSS feed (found in the *bonus/* folder)
 - It's very simple, so I'm having a hard time coming up with a fifth feature
 
 ## Differences ##
