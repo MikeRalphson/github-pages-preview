@@ -4,6 +4,3 @@ node_modules
 # Typings (should use tsd to install them)
 typings/*.d.ts
 typings/*/*.d.ts
-
-# JavaScript files (should be generated from TypeScript)
-*.js
