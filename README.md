@@ -16,7 +16,7 @@ JekyllJS is a Node.js replacement for Jekyll sites, allowing you to build your s
 - **Dates**: Dates in JavaScript handle [Romance Daylight Time](https://en.wikipedia.org/wiki/Central_European_Time), meaning that if you're in Europe, any dates between the end of March to the end of October will have an extra hour in the output, i.e. `new Date( "2016-04-01 00:00:00 +0100" )` will print as `Fri Apr 01 2016 01:00:00 GMT+0200 (Romance Daylight Time)`. This may or may not be a problem for you, depending on how you use dates in your site
 - **Categories**: JekyllJS doesn't support them, as I don't use them in my site. If there's a need, however, that can be changed
 - **Include variables**: Assigning [variables for the `{% include %}` tag](http://jekyllrb.com/docs/templates/#includes) isn't supported. If you need support for tokens (for dynamic includes), you need to apply the patch listed below
-- **Null {% if %} checks**: If check for null via `{% if someVar == null %}`, you'll need to change it to `{% if someVar == undefined %}` or just simply `{% if someVar %}`
+- **Null `{% if %}` checks**: If check for null via `{% if someVar == null %}`, you'll need to change it to `{% if someVar == undefined %}` or just simply `{% if someVar %}`
 
 ## Patches ##
 
