@@ -24,7 +24,7 @@ Liquid-node doesn't currently support tokens in the `{% include %}` tag, so if i
 
 ## Config ##
 
-JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config_ file, *config/default.json*, meaning you can change a few things without having to re-compile the project. It looks like this:
+JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config) file, *config/default.json*, meaning you can change a few things without having to re-compile the project. It looks like this:
 
 ```{
 	"log":{
