@@ -26,9 +26,16 @@ class IncludeIfExists extends Liquid.Include
 	{
 		return super.render( context ).catch( function( err )
 		{
-			// catch if the file didn't exist, in which case, do nothing
-			if( err != null && err.name === 'Liquid.FileSystemError' && err.message != null && err.message.indexOf( 'ENOENT' ) != -1 )
-				return '';
+			if( err != null )
+			{
+				// catch if the file didn't exist, in which case, do nothing
+				if( err.name === 'Liquid.FileSystemError' && err.message != null && err.message.indexOf( 'ENOENT' ) != -1 )
+					return '';
+					
+				// we might have an illegal filename, in which case, do nothing
+				if( err.name === 'Liquid.ArgumentError' && err.message != null && err.message.indexOf( 'Illegal template name' ) != -1 )
+					return '';
+			}	
 				
 			// it's something else, rethrow the rror
 			throw err;

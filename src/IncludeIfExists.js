@@ -11,8 +11,12 @@ var IncludeIfExists = (function (_super) {
     }
     IncludeIfExists.prototype.render = function (context) {
         return _super.prototype.render.call(this, context).catch(function (err) {
-            if (err != null && err.name === 'Liquid.FileSystemError' && err.message != null && err.message.indexOf('ENOENT') != -1)
-                return '';
+            if (err != null) {
+                if (err.name === 'Liquid.FileSystemError' && err.message != null && err.message.indexOf('ENOENT') != -1)
+                    return '';
+                if (err.name === 'Liquid.ArgumentError' && err.message != null && err.message.indexOf('Illegal template name') != -1)
+                    return '';
+            }
             throw err;
         });
     };
