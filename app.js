@@ -12,6 +12,7 @@ var RSVP = require('es6-promise');
 var YAML = require('js-yaml');
 var ConfigHelper = require('./src/ConfigHelper');
 var Content = require('./src/Content');
+var IncludeIfExists = require('./src/IncludeIfExists');
 var JekyllJSHighlight = require('./src/JekyllJSHighlight');
 var LiquidHighlight = require('./src/LiquidHighlight');
 var Site = require('./src/Site');
@@ -170,6 +171,7 @@ function _createLiquidEngine() {
     });
     LiquidHighlight.highlighter = highlighter;
     liquidEngine.registerTag("highlight", LiquidHighlight);
+    liquidEngine.registerTag("include_if_exists", IncludeIfExists);
     var includePath = Path.join(config.src.path, yamlConfig.includes_dir);
     var lfs = new Liquid.LocalFileSystem(includePath, "html");
     liquidEngine.registerFileSystem(lfs);

@@ -14,6 +14,7 @@ import RSVP					= require( 'es6-promise' );
 import YAML					= require( 'js-yaml' );
 import ConfigHelper			= require( './src/ConfigHelper' );
 import Content				= require( './src/Content' );
+import IncludeIfExists		= require( './src/IncludeIfExists' );
 import JekyllJSHighlight	= require( './src/JekyllJSHighlight' );
 import LiquidHighlight		= require( './src/LiquidHighlight' );
 import Site					= require( './src/Site' );
@@ -260,9 +261,10 @@ function _createLiquidEngine():void
 		}
 	});
 	
-	// add in our custom tag for the highlight
+	// add in our custom tag for the highlight and include_if_exists
 	LiquidHighlight.highlighter = highlighter;
 	liquidEngine.registerTag( "highlight", LiquidHighlight );
+	liquidEngine.registerTag( "include_if_exists", IncludeIfExists );
 	
 	// add a filesystem so we can include files
 	var includePath:string 			= Path.join( config.src.path, yamlConfig.includes_dir );
