@@ -11,6 +11,7 @@
     "highlight.js": "9.0.0",
     "js-yaml": "3.4.6",
     "liquid-node": "2.6.1",
+    "marked": "0.3.5",
     "node-static": "0.7.7",
     "rimraf": "2.5.0"
   },

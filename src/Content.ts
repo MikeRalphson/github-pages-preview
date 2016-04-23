@@ -16,6 +16,11 @@ class Content
 	public path:string = null;
 	
 	/**
+	 * The extension for this content - supported are .md, .markdown, .html
+	 */
+	public ext:string = null;
+	
+	/**
 	 * The front matter for the content
 	 */
 	public frontMatter:FrontMatter = null;
@@ -98,6 +103,13 @@ class Content
 	/************************************************************/
 	
 	/**
+	 * Returns if this content is markdown or not
+	 */
+	public get isMarkdown():boolean { return ( this.ext === 'md' || this.ext === 'markdown' ); }
+	
+	/************************************************************/
+	
+	/**
 	 * Creates a new Content object
 	 * @param filePath The path of the content
 	 */
@@ -142,12 +154,13 @@ class Content
 			}
 		}
 			
-		// create our filename object (get the date and name)
+		// create our filename object (get the date, name, and ext)
 		this.filename	= filename;
-		a 				= this.filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)/ );
+		a 				= this.filename.match( /^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)\.(.+)/ );
 		if( a != null )
 		{
-			this.name = a[4];
+			this.name 	= a[4];
+			this.ext	= a[5];
 			if( this.date == null )
 				this.date = new Date( Number( a[1] ), Number( a[2] ) - 1, Number( a[3] ) );
 				
@@ -159,7 +172,10 @@ class Content
 			}
 		}
 		else
-			this.name = this.filename.substr( 0, this.filename.lastIndexOf( "." ) );
+		{
+			this.name 	= this.filename.substr( 0, this.filename.lastIndexOf( "." ) );
+			this.ext	= this.filename.substr( this.filename.lastIndexOf( "." ) + 1 );
+		}
 			
 		// set our url if we need to
 		if( this.url == null && this.date != null )

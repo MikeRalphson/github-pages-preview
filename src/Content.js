@@ -2,6 +2,7 @@ var YAML = require('js-yaml');
 var Content = (function () {
     function Content(filePath) {
         this.path = null;
+        this.ext = null;
         this.frontMatter = null;
         this.layout = null;
         this.title = null;
@@ -20,6 +21,11 @@ var Content = (function () {
         this.sitemap = null;
         this.path = filePath.replace(/\\\\?/g, "/");
     }
+    Object.defineProperty(Content.prototype, "isMarkdown", {
+        get: function () { return (this.ext === 'md' || this.ext === 'markdown'); },
+        enumerable: true,
+        configurable: true
+    });
     Content.prototype.readFromFile = function (filename, file) {
         var a = file.match(/(^---(?:\r\n|\n))([\s\S]+)((?:\r\n|\n)---(?:\r\n|\n))([\s\S]+)/);
         if (a != null) {
@@ -41,9 +47,10 @@ var Content = (function () {
             }
         }
         this.filename = filename;
-        a = this.filename.match(/^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)/);
+        a = this.filename.match(/^(\d{4})-(\d\d?)-(\d\d?)-([^\.]+)\.(.+)/);
         if (a != null) {
             this.name = a[4];
+            this.ext = a[5];
             if (this.date == null)
                 this.date = new Date(Number(a[1]), Number(a[2]) - 1, Number(a[3]));
             if (this.title == null) {
@@ -51,8 +58,10 @@ var Content = (function () {
                 this.title = this.title.substr(0, 1).toUpperCase() + this.title.substr(1);
             }
         }
-        else
+        else {
             this.name = this.filename.substr(0, this.filename.lastIndexOf("."));
+            this.ext = this.filename.substr(this.filename.lastIndexOf(".") + 1);
+        }
         if (this.url == null && this.date != null) {
             var year = this.date.getFullYear();
             var month = this.date.getMonth() + 1;

@@ -4,6 +4,7 @@ var DateFormat = require('dateformat');
 var FS = require('fs');
 var HTTP = require('http');
 var Liquid = require('liquid-node');
+var Marked = require('marked');
 var NodeStatic = require('node-static');
 var Path = require('path');
 var RMRF = require('rimraf');
@@ -11,10 +12,12 @@ var RSVP = require('es6-promise');
 var YAML = require('js-yaml');
 var ConfigHelper = require('./src/ConfigHelper');
 var Content = require('./src/Content');
+var JekyllJSHighlight = require('./src/JekyllJSHighlight');
 var LiquidHighlight = require('./src/LiquidHighlight');
 var Site = require('./src/Site');
 var YAMLConfig = require('./src/YAMLConfig');
 var Promise = RSVP.Promise;
+var highlighter = null;
 var liquidEngine = null;
 var config = null;
 var log = null;
@@ -29,6 +32,8 @@ function run() {
     _createLog();
     _readYAMLConfig();
     _createContext();
+    _createJekyllJSHighlight();
+    _createMarked();
     _createLiquidEngine();
     if (process.argv.length > 2 && process.argv[2] === "serve")
         isServing = true;
@@ -116,6 +121,19 @@ function _createContext() {
     context = { site: new Site(), page: null, content: null };
     context.site.updateFromYAML(yamlConfig);
 }
+function _createJekyllJSHighlight() {
+    highlighter = new JekyllJSHighlight();
+    highlighter.config = config.highlight;
+}
+function _createMarked() {
+    var renderer = new Marked.Renderer();
+    renderer.code = function (code, lang) {
+        return highlighter.highlight(code, lang) + '\n';
+    };
+    Marked.setOptions({
+        renderer: renderer
+    });
+}
 function _createLiquidEngine() {
     liquidEngine = new Liquid.Engine();
     var escapeEntityMap = {
@@ -150,7 +168,7 @@ function _createLiquidEngine() {
             return encodeURIComponent(input).replace(/%20/g, "+");
         }
     });
-    LiquidHighlight.highlightConfig = config.highlight;
+    LiquidHighlight.highlighter = highlighter;
     liquidEngine.registerTag("highlight", LiquidHighlight);
     var includePath = Path.join(config.src.path, yamlConfig.includes_dir);
     var lfs = new Liquid.LocalFileSystem(includePath, "html");
@@ -164,8 +182,8 @@ function _readLayouts() {
         return layouts;
     }
     FS.readdirSync(path).forEach(function (filename) {
-        if (filename.lastIndexOf(".html") !== (filename.length - 5)) {
-            log.info("Ignoring the file '" + filename + "' (" + path + ") in layouts as it's not a HTML file");
+        if (!_isSupportedContentType(filename)) {
+            log.info("Ignoring the file '" + filename + "' (" + path + ") in layouts as it's not a supported content type (HTML/Markdown)");
             return;
         }
         var contentsRaw = FS.readFileSync(Path.join(path, filename), yamlConfig.encoding);
@@ -181,8 +199,8 @@ function _readContents(dir, ar) {
         return;
     }
     FS.readdirSync(path).forEach(function (filename) {
-        if (filename.lastIndexOf(".html") !== (filename.length - 5)) {
-            log.info("Ignoring the file '" + filename + "' (" + path + ") as it's not a HTML file");
+        if (!_isSupportedContentType(filename)) {
+            log.info("Ignoring the file '" + filename + "' (" + path + ") as it's not a supported content type (HTML/Markdown)");
             return;
         }
         var content = _readContent(path, filename);
@@ -202,6 +220,10 @@ function _readContent(path, filename) {
     var contentsRaw = FS.readFileSync(filePath, yamlConfig.encoding);
     var content = new Content(Path.relative(config.src.path, filePath));
     content.readFromFile(filename, contentsRaw);
+    if (content.isMarkdown) {
+        log.debug("Converting markdown file '" + content.filename + "'");
+        content.content = Marked(content.content);
+    }
     return content;
 }
 function _extractTags(content) {
@@ -363,6 +385,13 @@ function _ensureDirs(path, root) {
 }
 function _sortContent(a, b) {
     return b.date.getTime() - a.date.getTime();
+}
+function _isSupportedContentType(filename) {
+    var index = filename.lastIndexOf('.');
+    if (index == -1)
+        return false;
+    var ext = filename.substring(index + 1);
+    return (ext == 'html' || ext == 'htm' || ext == 'md' || ext == 'markdown');
 }
 function _createServer() {
     var serverDir = Path.join(config.src.path, yamlConfig.destination);

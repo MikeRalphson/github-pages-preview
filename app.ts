@@ -1,26 +1,29 @@
 /// <reference path='typings/tsd.d.ts' />
 require('es6-promise').polyfill(); // auto-polyfill entire Node environment for Promise
 
-import Bunyan			= require( 'bunyan' );
-import DateFormat		= require( 'dateformat' );
-import FS				= require( 'fs' );
-import HTTP				= require( 'http' );
-import Liquid			= require( 'liquid-node' );
-import NodeStatic		= require( 'node-static' );
-import Path				= require( 'path' );
-import RMRF				= require( 'rimraf' );
-import RSVP				= require( 'es6-promise' );
-import YAML				= require( 'js-yaml' );
-import ConfigHelper		= require( './src/ConfigHelper' );
-import Content			= require( './src/Content' );
-import LiquidHighlight	= require( './src/LiquidHighlight' );
-import Site				= require( './src/Site' );
-import YAMLConfig		= require( './src/YAMLConfig' );
-var Promise				= RSVP.Promise;
+import Bunyan				= require( 'bunyan' );
+import DateFormat			= require( 'dateformat' );
+import FS					= require( 'fs' );
+import HTTP					= require( 'http' );
+import Liquid				= require( 'liquid-node' );
+import Marked 				= require( 'marked' );
+import NodeStatic			= require( 'node-static' );
+import Path					= require( 'path' );
+import RMRF					= require( 'rimraf' );
+import RSVP					= require( 'es6-promise' );
+import YAML					= require( 'js-yaml' );
+import ConfigHelper			= require( './src/ConfigHelper' );
+import Content				= require( './src/Content' );
+import JekyllJSHighlight	= require( './src/JekyllJSHighlight' );
+import LiquidHighlight		= require( './src/LiquidHighlight' );
+import Site					= require( './src/Site' );
+import YAMLConfig			= require( './src/YAMLConfig' );
+var Promise					= RSVP.Promise;
 	
 /************************************************************/
 
 // declare our vars
+var highlighter:JekyllJSHighlight						= null;	// the object that we use to highlight our code
 var liquidEngine:Liquid.Engine							= null; // the engine for parsing our liquid tags
 var config:ConfigHelper									= null; // the object for reading our config
 var log:Bunyan.Logger 									= null; // our logger
@@ -42,6 +45,8 @@ function run():void
 	_createLog();
 	_readYAMLConfig();
 	_createContext();
+	_createJekyllJSHighlight();
+	_createMarked();
 	_createLiquidEngine();
 	
 	// check if we're serving the site or just generating it
@@ -178,6 +183,27 @@ function _createContext():void
 	context.site.updateFromYAML( yamlConfig );
 }
 
+// creates our JekyllJSHighlight object
+function _createJekyllJSHighlight():void
+{
+	highlighter 		= new JekyllJSHighlight();
+	highlighter.config	= config.highlight;
+}
+
+// creates our marked object
+function _createMarked():void
+{
+	// use highlight.js to highlight markdown code
+	var renderer 	= new Marked.Renderer();
+	renderer.code 	= function( code, lang ) {
+		return highlighter.highlight( code, lang ) + '\n';
+	}
+	
+	Marked.setOptions({
+		renderer: renderer
+	});
+}
+
 // creates our liquid engine, which will parse our liquid tags
 function _createLiquidEngine():void
 {
@@ -235,7 +261,7 @@ function _createLiquidEngine():void
 	});
 	
 	// add in our custom tag for the highlight
-	LiquidHighlight.highlightConfig = config.highlight;
+	LiquidHighlight.highlighter = highlighter;
 	liquidEngine.registerTag( "highlight", LiquidHighlight );
 	
 	// add a filesystem so we can include files
@@ -261,9 +287,9 @@ function _readLayouts():{ [name:string]:string }
 	FS.readdirSync( path ).forEach( function( filename:string ){
 		
 		// make sure it's a html file
-		if( filename.lastIndexOf( ".html" ) !== ( filename.length - 5 ) )
+		if( !_isSupportedContentType( filename ) )
 		{
-			log.info( "Ignoring the file '" + filename + "' (" + path + ") in layouts as it's not a HTML file" );
+			log.info( "Ignoring the file '" + filename + "' (" + path + ") in layouts as it's not a supported content type (HTML/Markdown)" );
 			return;
 		}
 		
@@ -290,9 +316,9 @@ function _readContents( dir:string, ar:Content[] ):void
 	FS.readdirSync( path ).forEach( function( filename:string ){
 		
 		// make sure it's a html file
-		if( filename.lastIndexOf( ".html" ) !== ( filename.length - 5 ) )
+		if( !_isSupportedContentType( filename ) )
 		{
-			log.info( "Ignoring the file '" + filename + "' (" + path + ") as it's not a HTML file" );
+			log.info( "Ignoring the file '" + filename + "' (" + path + ") as it's not a supported content type (HTML/Markdown)" );
 			return;
 		}
 		
@@ -324,6 +350,14 @@ function _readContent( path:string, filename:string ):Content
 	var contentsRaw:string 	= FS.readFileSync( filePath, yamlConfig.encoding );
 	var content:Content 	= new Content( Path.relative( config.src.path, filePath ) );
 	content.readFromFile( filename, contentsRaw );
+	
+	// if this is a markdown file, then convert it
+	if( content.isMarkdown )
+	{
+		log.debug( "Converting markdown file '" + content.filename + "'" );
+		content.content = Marked( content.content );
+	}
+		
 	return content;
 }
 
@@ -587,6 +621,17 @@ function _sortContent( a:Content, b:Content ):number
 	return b.date.getTime() - a.date.getTime(); // most recent first
 }
 
+// returns if this is content that we support
+function _isSupportedContentType( filename:string ):boolean
+{
+	var index = filename.lastIndexOf( '.' );
+	if( index == -1 )
+		return false;
+		
+	var ext:string = filename.substring( index + 1 );
+	return ( ext == 'html' || ext == 'htm' || ext == 'md' || ext == 'markdown' );
+}
+
 // the function to start our static server to server our site
 function _createServer():void
 {
@@ -644,22 +689,6 @@ function _createServer():void
 			});
 		}).resume();
 	}).listen( config.server.port );
-	
-	// fileServer.serve(request, response, function (e, res) {
-    //         if (e && (e.status === 404)) { // If the file wasn't found
-    //             fileServer.serveFile('/not-found.html', 404, {}, request, response);
-    //         }
-    //     });
-		
-	// 	fileServer.serve(request, response, function (err, result) {
-    //         if (err) { // There was an error serving the file
-    //             console.error("Error serving " + request.url + " - " + err.message);
-
-    //             // Respond to the client
-    //             response.writeHead(err.status, err.headers);
-    //             response.end();
-    //         }
-    //     });
 	
 	log.info( "Local server started at " + context.site.url );
 }
