@@ -8,6 +8,7 @@ var Site = (function () {
         this.posts = [];
         this.pages = [];
         this.tags = {};
+        this.meta = null;
     }
     Site.prototype.updateFromYAML = function (yaml) {
         for (var key in yaml) {

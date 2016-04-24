@@ -7,6 +7,7 @@ class ConfigHelper
 	
 	private m_log:{ level:string }										= null;	// the config for our log
 	private m_src:{ path:string, fourOhFour:string } 					= null; // the config for our src dir
+	private m_meta:{ keywords:string, description:string }				= null; // the config for our meta data
 	private m_highlight:{ parentClassName:string, shouldWrap:boolean }	= null; // the config for our highlight tags
 	private m_server:{ port:number }									= null;	// the config for our serving port
 	
@@ -21,6 +22,11 @@ class ConfigHelper
 	 * The config for our src dir
 	 */
 	public get src():{ path:string, fourOhFour:string } { return this.m_src; }
+	
+	/**
+	 * The config for our meta data
+	 */
+	public get meta():{ keywords:string, description:string } { return this.m_meta; }
 	
 	/**
 	 * The config for our highlighter
@@ -41,6 +47,7 @@ class ConfigHelper
 	{
 		this._parseLogConfig();
 		this._parseSrcConfig();
+		this._parseMetaConfig();
 		this._parseHighlightConfig();
 		this._parseServerConfig();
 	}
@@ -78,6 +85,16 @@ class ConfigHelper
 			this.m_src.path = Config.get<string>( "src.path" );
 		if( Config.has( "src.404" ) )
 			this.m_src.fourOhFour = Config.get<string>( "src.404" );
+	}
+	
+	// parses our meta config
+	private _parseMetaConfig():void
+	{
+		this.m_meta = { keywords:null, description:null };
+		if( Config.has( "meta.keywords" ) )
+			this.m_meta.keywords = Config.get<string>( "meta.keywords" );
+		if( Config.has( "meta.description" ) )
+			this.m_meta.description = Config.get<string>( "meta.description" );	
 	}
 	
 	// parses our highlight config

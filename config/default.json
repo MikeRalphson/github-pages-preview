@@ -6,6 +6,10 @@
 		"path":"C:/Users/divil/Documents/Coding/Web/Website/dev/",
 		"404":"/404/"
 	},
+	"meta":{
+		"keywords":"default,keywords,here",
+		"description":"default description"
+	},
 	"highlight":{
 		"parentClassName":"highlight",
 		"shouldWrap":true

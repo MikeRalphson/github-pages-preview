@@ -100,6 +100,11 @@ class Content
 	 */
 	public sitemap:{ lastmod:string, priority:number, changefreq:string } = null;
 	
+	/**
+	 * Any meta info for the page
+	 */
+	public meta: { keywords:string, description:string } = null;
+	
 	/************************************************************/
 	
 	/**
@@ -261,6 +266,11 @@ class FrontMatter
 	 * Does the page have any special instructions for when we're generating the sitemap?
 	 */
 	public sitemap:{ lastmod:string, priority:number, changefreq:string } = null;
+	
+	/**
+	 * Any meta info for the page
+	 */
+	public meta: { keywords:string, description:string } = null;
 	
 	/************************************************************/
 	

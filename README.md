@@ -37,6 +37,10 @@ JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config) 
 		"path":"C:/PATH/TO/WEBSITE/",
 		"404":"/404/"
 	},
+	"meta":{
+		"keywords":"default,keywords,here",
+		"description":"default description"
+	},
 	"highlight":{
 		"parentClassName":"highlight",
 		"shouldWrap":true
@@ -52,6 +56,8 @@ which translates as:
 - `log.level`: the level used by [Bunyan](https://github.com/trentm/node-bunyan), the logger used by JekyllJS
 - `src.path`: the full path to the folder containing your Jekyll site (i.e. where *_layouts/* and *_posts/* live)
 - `src.404`: the path for the file to serve as the 404 page, if you have one
+- `meta.keywords`: the default meta keywords to add to each page if the page doesn't specify any. Set to null or leave out to ignore this
+- `meta.description`: the default meta description to add to each page if the page doesn't specify one. If null or left out, then the description in *_config.yml* will be used (if set)
 - `highlight.parentClassname`: the classname for the parent node for highlighted code. Use `highlight` to keep with the Jekyll generated code, or `hljs` to use the highlight.js version
 - `highlight.shouldWrap`: Should we wrap our generated code in a div? Use `true` to keep with the Jekyll generated code, or `false` to use the highlight.js version (in which case the `highlight.parentClassname` will be applied to the code tag
 - `server.port`: the port to use when serving the site

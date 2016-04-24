@@ -120,6 +120,7 @@ function _readYAMLConfig() {
 }
 function _createContext() {
     context = { site: new Site(), page: null, content: null };
+    context.site.meta = config.meta;
     context.site.updateFromYAML(yamlConfig);
 }
 function _createJekyllJSHighlight() {

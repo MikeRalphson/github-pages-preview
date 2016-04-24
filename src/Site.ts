@@ -51,6 +51,11 @@ class Site
 	 */
 	public tags:{ [tag:string]:Content[]|number } = {}; // the number one is for the size property
 	
+	/**
+	 * The site's default meta data
+	 */
+	public meta:{ keywords:string, description:string } = null;
+	
 	/************************************************************/
 	
 	/**

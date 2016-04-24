@@ -3,6 +3,7 @@ var ConfigHelper = (function () {
     function ConfigHelper() {
         this.m_log = null;
         this.m_src = null;
+        this.m_meta = null;
         this.m_highlight = null;
         this.m_server = null;
     }
@@ -13,6 +14,11 @@ var ConfigHelper = (function () {
     });
     Object.defineProperty(ConfigHelper.prototype, "src", {
         get: function () { return this.m_src; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ConfigHelper.prototype, "meta", {
+        get: function () { return this.m_meta; },
         enumerable: true,
         configurable: true
     });
@@ -29,6 +35,7 @@ var ConfigHelper = (function () {
     ConfigHelper.prototype.parse = function () {
         this._parseLogConfig();
         this._parseSrcConfig();
+        this._parseMetaConfig();
         this._parseHighlightConfig();
         this._parseServerConfig();
     };
@@ -53,6 +60,13 @@ var ConfigHelper = (function () {
             this.m_src.path = Config.get("src.path");
         if (Config.has("src.404"))
             this.m_src.fourOhFour = Config.get("src.404");
+    };
+    ConfigHelper.prototype._parseMetaConfig = function () {
+        this.m_meta = { keywords: null, description: null };
+        if (Config.has("meta.keywords"))
+            this.m_meta.keywords = Config.get("meta.keywords");
+        if (Config.has("meta.description"))
+            this.m_meta.description = Config.get("meta.description");
     };
     ConfigHelper.prototype._parseHighlightConfig = function () {
         this.m_highlight = { parentClassName: "highlight", shouldWrap: true };
