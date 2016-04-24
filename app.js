@@ -122,7 +122,6 @@ function _createContext() {
     context = { site: new Site(), page: null, content: null };
     context.site.meta = config.meta;
     context.site.opengraph = config.opengraph;
-    console.log("\tOpengraph: " + JSON.stringify(context.site.opengraph));
     context.site.updateFromYAML(yamlConfig);
 }
 function _createJekyllJSHighlight() {

@@ -76,13 +76,13 @@ var ConfigHelper = (function () {
             this.m_meta.description = Config.get("meta.description");
     };
     ConfigHelper.prototype._parseOpenGraphConfig = function () {
-        this.m_opengraph = { fbAdmin: null, type: null, image: null };
+        this.m_opengraph = { "fb:admins": null, "og:type": null, "og:image": null };
         if (Config.has("opengraph.fb:admins"))
-            this.m_opengraph.fbAdmin = Config.get("opengraph.fb:admins");
+            this.m_opengraph["fb:admins"] = Config.get("opengraph.fb:admins");
         if (Config.has("opengraph.og:type"))
-            this.m_opengraph.type = Config.get("opengraph.og:type");
+            this.m_opengraph["og:type"] = Config.get("opengraph.og:type");
         if (Config.has("opengraph.og:image"))
-            this.m_opengraph.image = Config.get("opengraph.og:image");
+            this.m_opengraph["og:image"] = Config.get("opengraph.og:image");
     };
     ConfigHelper.prototype._parseHighlightConfig = function () {
         this.m_highlight = { parentClassName: "highlight", shouldWrap: true };

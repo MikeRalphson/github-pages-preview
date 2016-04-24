@@ -28,7 +28,7 @@ When I added Markdown support using the [marked node.js library](https://github.
 
 JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config) file, *config/default.json*, meaning you can change a few things without having to re-compile the project. It looks like this:
 
-```
+```json
 {
 	"log":{
 		"level":"info"
@@ -75,6 +75,41 @@ NOTE: other basic OpenGraph tags can be auto generated:
 - `og:title`: the post title, or the site title if there isn't a post one: `<meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}" />`
 - `og:site_name`: taken from *_config.yml*: `<meta property="og:site_name" content="{{ site.title }}"/>`
 - `og:url`: the full canonical url of the page; `<meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}" />`
+
+## Sample Post YAML FrontMatter ##
+
+A quick idea of the frontmatter for a post, some of which would override the site defaults:
+
+```yaml
+---
+date: 2016-04-23 17:19:00 +0100
+layout: post
+permalink: /intro/
+title: "Intro"
+meta:
+  keywords: one, two, three, four
+  description: This is the description for the intro doc
+opengraph:
+  fb:admins: 1234567
+  og:type: website
+  og:image: /img/open_graph2.png
+  og:locale: en_GB
+  og:video: "http://some_video.com"
+---
+```
+
+where:
+
+- `date`: the date the post was published
+- `layout`: the layout to use for the post
+- `permalink`: the permalink for the post
+- `title`: the title for the post
+- `meta.keywords`: keywords to use for the `<meta>` tag in the page head. If null, then the defaults from the config are used
+- `meta.description`: the description to use for the `<meta>` tag in the page head. If null, then the default from the config is used
+- `opengraph.fb:admins`: the ID of the Facebook user to set as the admin from the page. If null, then the default from the config is used
+- `opengraph.og:type`: the type of the page for opengraph. If null, then the default from the config is used
+- `opengraph.og:image`: the image to use for opengraph. If null, then the default from the config is used
+- `og:locale`/`og:video`: any other opengraph tag will be added to the page automatically
 
 ## Compiling JekyllJS ##
 

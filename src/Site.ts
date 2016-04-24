@@ -59,7 +59,7 @@ class Site
 	/**
 	 * The site's default opengraph data
 	 */
-	public opengraph:{ fbAdmin:string, type:string, image:string } = null;
+	public opengraph:{ "fb:admins":string, "og:type":string, "og:image":string } = null;
 	
 	/************************************************************/
 	

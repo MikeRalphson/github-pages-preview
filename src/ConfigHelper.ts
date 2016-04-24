@@ -5,12 +5,12 @@ class ConfigHelper
 {
 	/************************************************************/
 	
-	private m_log:{ level:string }										= null;	// the config for our log
-	private m_src:{ path:string, fourOhFour:string } 					= null; // the config for our src dir
-	private m_meta:{ keywords:string, description:string }				= null; // the config for our meta data
-	private m_opengraph:{ fbAdmin:string, type:string, image:string }	= null;	// the config for our opengraph data
-	private m_highlight:{ parentClassName:string, shouldWrap:boolean }	= null; // the config for our highlight tags
-	private m_server:{ port:number }									= null;	// the config for our serving port
+	private m_log:{ level:string }													= null;	// the config for our log
+	private m_src:{ path:string, fourOhFour:string } 								= null; // the config for our src dir
+	private m_meta:{ keywords:string, description:string }							= null; // the config for our meta data
+	private m_opengraph:{ "fb:admins":string, "og:type":string, "og:image":string }	= null;	// the config for our opengraph data
+	private m_highlight:{ parentClassName:string, shouldWrap:boolean }				= null; // the config for our highlight tags
+	private m_server:{ port:number }												= null;	// the config for our serving port
 	
 	/************************************************************/
 	
@@ -32,7 +32,7 @@ class ConfigHelper
 	/**
 	 * The config for our default opengraph data
 	 */
-	public get opengraph():{ fbAdmin:string, type:string, image:string } { return this.m_opengraph; }
+	public get opengraph():{ "fb:admins":string, "og:type":string, "og:image":string } { return this.m_opengraph; }
 	
 	/**
 	 * The config for our highlighter
@@ -107,13 +107,13 @@ class ConfigHelper
 	// parses our opengraph config
 	private _parseOpenGraphConfig():void
 	{
-		this.m_opengraph = { fbAdmin:null, type:null, image:null }
+		this.m_opengraph = { "fb:admins":null, "og:type":null, "og:image":null }
 		if( Config.has( "opengraph.fb:admins" ) )
-			this.m_opengraph.fbAdmin = Config.get<string>( "opengraph.fb:admins" );
+			this.m_opengraph["fb:admins"] = Config.get<string>( "opengraph.fb:admins" );
 		if( Config.has( "opengraph.og:type" ) )
-			this.m_opengraph.type = Config.get<string>( "opengraph.og:type" );
+			this.m_opengraph["og:type"] = Config.get<string>( "opengraph.og:type" );
 		if( Config.has( "opengraph.og:image" ) )
-			this.m_opengraph.image = Config.get<string>( "opengraph.og:image" );
+			this.m_opengraph["og:image"] = Config.get<string>( "opengraph.og:image" );
 	}
 	
 	// parses our highlight config
