@@ -9,6 +9,7 @@ var Site = (function () {
         this.pages = [];
         this.tags = {};
         this.meta = null;
+        this.opengraph = null;
     }
     Site.prototype.updateFromYAML = function (yaml) {
         for (var key in yaml) {

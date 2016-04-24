@@ -181,7 +181,8 @@ function _readYAMLConfig():void
 function _createContext():void
 {
 	context = { site:new Site(), page:null, content:null };
-	context.site.meta = config.meta;
+	context.site.meta 		= config.meta;
+	context.site.opengraph	= config.opengraph;
 	context.site.updateFromYAML( yamlConfig );
 }
 

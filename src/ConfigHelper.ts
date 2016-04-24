@@ -8,6 +8,7 @@ class ConfigHelper
 	private m_log:{ level:string }										= null;	// the config for our log
 	private m_src:{ path:string, fourOhFour:string } 					= null; // the config for our src dir
 	private m_meta:{ keywords:string, description:string }				= null; // the config for our meta data
+	private m_opengraph:{ fbAdmin:string, type:string, image:string }	= null;	// the config for our opengraph data
 	private m_highlight:{ parentClassName:string, shouldWrap:boolean }	= null; // the config for our highlight tags
 	private m_server:{ port:number }									= null;	// the config for our serving port
 	
@@ -29,6 +30,11 @@ class ConfigHelper
 	public get meta():{ keywords:string, description:string } { return this.m_meta; }
 	
 	/**
+	 * The config for our default opengraph data
+	 */
+	public get opengraph():{ fbAdmin:string, type:string, image:string } { return this.m_opengraph; }
+	
+	/**
 	 * The config for our highlighter
 	 */
 	public get highlight():{ parentClassName:string, shouldWrap:boolean } { return this.m_highlight; }
@@ -48,6 +54,7 @@ class ConfigHelper
 		this._parseLogConfig();
 		this._parseSrcConfig();
 		this._parseMetaConfig();
+		this._parseOpenGraphConfig();
 		this._parseHighlightConfig();
 		this._parseServerConfig();
 	}
@@ -95,6 +102,18 @@ class ConfigHelper
 			this.m_meta.keywords = Config.get<string>( "meta.keywords" );
 		if( Config.has( "meta.description" ) )
 			this.m_meta.description = Config.get<string>( "meta.description" );	
+	}
+	
+	// parses our opengraph config
+	private _parseOpenGraphConfig():void
+	{
+		this.m_opengraph = { fbAdmin:null, type:null, image:null }
+		if( Config.has( "opengraph.fb:admins" ) )
+			this.m_opengraph.fbAdmin = Config.get<string>( "opengraph.fb:admins" );
+		if( Config.has( "opengraph.og:type" ) )
+			this.m_opengraph.type = Config.get<string>( "opengraph.og:type" );
+		if( Config.has( "opengraph.og:image" ) )
+			this.m_opengraph.image = Config.get<string>( "opengraph.og:image" );
 	}
 	
 	// parses our highlight config

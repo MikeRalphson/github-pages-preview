@@ -41,6 +41,11 @@ JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config) 
 		"keywords":"default,keywords,here",
 		"description":"default description"
 	},
+	"opengraph":{
+		"fb:admins":"XXXXX",
+		"og:type":"article",
+		"og:image":"/img/open_graph.png"
+	},
 	"highlight":{
 		"parentClassName":"highlight",
 		"shouldWrap":true
@@ -58,9 +63,18 @@ which translates as:
 - `src.404`: the path for the file to serve as the 404 page, if you have one
 - `meta.keywords`: the default meta keywords to add to each page if the page doesn't specify any. Set to null or leave out to ignore this
 - `meta.description`: the default meta description to add to each page if the page doesn't specify one. If null or left out, then the description in *_config.yml* will be used (if set)
+- `opengraph.fb:admins`: the ID of the Facebook user that you want to associate as the admin of the page. If null, then it's not added to the page
+- `opengraph.og:type`: the default type for each page, unless overwritten. If null and not overwritten, then it's not added to the page
+- `opengraph.og:image`: the image to use as the default OpenGraph share. If null and not overwritten, then it's not added to the page
 - `highlight.parentClassname`: the classname for the parent node for highlighted code. Use `highlight` to keep with the Jekyll generated code, or `hljs` to use the highlight.js version
 - `highlight.shouldWrap`: Should we wrap our generated code in a div? Use `true` to keep with the Jekyll generated code, or `false` to use the highlight.js version (in which case the `highlight.parentClassname` will be applied to the code tag
 - `server.port`: the port to use when serving the site
+
+NOTE: other basic OpenGraph tags can be auto generated:
+
+- `og:title`: the post title, or the site title if there isn't a post one: `<meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}" />`
+- `og:site_name`: taken from *_config.yml*: `<meta property="og:site_name" content="{{ site.title }}"/>`
+- `og:url`: the full canonical url of the page; `<meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}" />`
 
 ## Compiling JekyllJS ##
 

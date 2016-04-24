@@ -56,6 +56,11 @@ class Site
 	 */
 	public meta:{ keywords:string, description:string } = null;
 	
+	/**
+	 * The site's default opengraph data
+	 */
+	public opengraph:{ fbAdmin:string, type:string, image:string } = null;
+	
 	/************************************************************/
 	
 	/**

@@ -4,6 +4,7 @@ var ConfigHelper = (function () {
         this.m_log = null;
         this.m_src = null;
         this.m_meta = null;
+        this.m_opengraph = null;
         this.m_highlight = null;
         this.m_server = null;
     }
@@ -22,6 +23,11 @@ var ConfigHelper = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(ConfigHelper.prototype, "opengraph", {
+        get: function () { return this.m_opengraph; },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(ConfigHelper.prototype, "highlight", {
         get: function () { return this.m_highlight; },
         enumerable: true,
@@ -36,6 +42,7 @@ var ConfigHelper = (function () {
         this._parseLogConfig();
         this._parseSrcConfig();
         this._parseMetaConfig();
+        this._parseOpenGraphConfig();
         this._parseHighlightConfig();
         this._parseServerConfig();
     };
@@ -67,6 +74,15 @@ var ConfigHelper = (function () {
             this.m_meta.keywords = Config.get("meta.keywords");
         if (Config.has("meta.description"))
             this.m_meta.description = Config.get("meta.description");
+    };
+    ConfigHelper.prototype._parseOpenGraphConfig = function () {
+        this.m_opengraph = { fbAdmin: null, type: null, image: null };
+        if (Config.has("opengraph.fb:admins"))
+            this.m_opengraph.fbAdmin = Config.get("opengraph.fb:admins");
+        if (Config.has("opengraph.og:type"))
+            this.m_opengraph.type = Config.get("opengraph.og:type");
+        if (Config.has("opengraph.og:image"))
+            this.m_opengraph.image = Config.get("opengraph.og:image");
     };
     ConfigHelper.prototype._parseHighlightConfig = function () {
         this.m_highlight = { parentClassName: "highlight", shouldWrap: true };
