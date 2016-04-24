@@ -20,7 +20,9 @@ JekyllJS is a Node.js replacement for Jekyll sites, allowing you to build your s
 
 ## Patches ##
 
-Liquid-node doesn't currently support tokens in the `{% include %}` tag, so if it's something you need, you can apply the quick patch fix in the *patches/* directory. Just copy the file to the *node_modules/liquid-node/lib/liquid/tags/* folder after you've installed your dependencies.
+Liquid-node doesn't currently support tokens in the `{% include %}` tag, so if it's something you need, you can apply the quick patch fix found in *include.js* in the *patches/* directory. Just copy the file to the *node_modules/liquid-node/lib/liquid/tags/* folder after you've installed your dependencies.
+
+When I added Markdown support using the [marked node.js library](https://github.com/chjj/marked) I found that it was escaping all quotes for all reasons, including normal text ("don't", "can't", "I'm", etc). I don't particularly like this behaviour (it's still valid HTML though), so I added a fix around it. Just replace the *marked.js* file in the *patches/* directory with the one in the *node_modules/marked/lib/* folder if you want to do the same.
 
 ## Config ##
 
