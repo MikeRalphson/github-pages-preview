@@ -1,5 +1,5 @@
 {
-  "name": "JekyllJS",
+  "name": "jekyll-js",
   "version": "0.0.3",
   "description": "A JS Jekyll clone",
   "main": "app.js",
