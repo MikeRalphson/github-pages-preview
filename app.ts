@@ -354,13 +354,6 @@ function _readContent( path:string, filename:string ):Content
 	var contentsRaw:string 	= FS.readFileSync( filePath, yamlConfig.encoding );
 	var content:Content 	= new Content( Path.relative( config.src.path, filePath ) );
 	content.readFromFile( filename, contentsRaw );
-	
-	// if this is a markdown file, then convert it
-	if( content.isMarkdown )
-	{
-		log.debug( "Converting markdown file '" + content.filename + "'" );
-		content.content = Marked( content.content );
-	}
 		
 	return content;
 }
@@ -424,6 +417,13 @@ function _convertContent( content:Content ):Promise<void>
 		// save the converted result back to the content (as it can be used later if it's included anywhere)
 		log.debug( "Finished parsing liquid in " + content.filename );
 		content.content = result;
+		
+		// if this is a markdown file, then convert it
+		if( content.isMarkdown )
+		{
+			log.debug( "Converting markdown file '" + content.filename + "'" );
+			content.content = Marked( content.content );
+		}
 	}).catch( function( e ){
 		log.error( "Couldn't parse liquid in " + content.filename, e );
 		throw e;

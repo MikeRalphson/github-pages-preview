@@ -224,10 +224,6 @@ function _readContent(path, filename) {
     var contentsRaw = FS.readFileSync(filePath, yamlConfig.encoding);
     var content = new Content(Path.relative(config.src.path, filePath));
     content.readFromFile(filename, contentsRaw);
-    if (content.isMarkdown) {
-        log.debug("Converting markdown file '" + content.filename + "'");
-        content.content = Marked(content.content);
-    }
     return content;
 }
 function _extractTags(content) {
@@ -264,6 +260,10 @@ function _convertContent(content) {
     return liquidEngine.parseAndRender(content.content, context).then(function (result) {
         log.debug("Finished parsing liquid in " + content.filename);
         content.content = result;
+        if (content.isMarkdown) {
+            log.debug("Converting markdown file '" + content.filename + "'");
+            content.content = Marked(content.content);
+        }
     }).catch(function (e) {
         log.error("Couldn't parse liquid in " + content.filename, e);
         throw e;
