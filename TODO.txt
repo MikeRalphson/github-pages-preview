@@ -1,3 +1,5 @@
+========== TODO ==========
+
 ========== DONE ==========
 * Comments aren't included
 * Files aren't included
@@ -11,6 +13,7 @@
 * Allow pages to modify their meta keywords and description
 * Allow pages to modify their open graph tags
 * Check why jekyll tags aren't being used properly in markdown posts
+* og:image should be full path
 
 ===== CAN'T/WON'T FIX =====
 * Dates not saving right (applying the +0100 to the output - jekyll doesn't)
