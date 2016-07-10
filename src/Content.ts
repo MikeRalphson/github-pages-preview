@@ -86,16 +86,6 @@ class Content
 	public tags:string[] = [];
 	
 	/**
-	 * Does this page/post have any comments? (found in _includes)
-	 */
-	public hasComments:boolean = false;
-	
-	/**
-	 * Does this page/post have any associated files? (found in _includess)
-	 */
-	public hasFiles:boolean = false;
-	
-	/**
 	 * Does the page have any special instructions for when we're generating the sitemap?
 	 */
 	public sitemap:{ lastmod:string, priority:number, changefreq:string } = null;
@@ -256,16 +246,8 @@ class FrontMatter
 	 * The date that will override the date from the name of the post
 	 */
 	public date:string = null;
-	
 	/**
-	 * Does this page/post have any comments? (found in _includes)
 	 */
-	public hasComments:boolean = false;
-	
-	/**
-	 * Does this page/post have any associated files? (found in _includess)
-	 */
-	public hasFiles:boolean = false;
 	
 	/**
 	 * Does the page have any special instructions for when we're generating the sitemap?
