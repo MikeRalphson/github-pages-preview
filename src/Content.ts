@@ -99,6 +99,11 @@ class Content
 	 * Any opengraph specific info for the page
 	 */
 	public opengraph:{ "fb:admins":string, "og:type":string, "og:image" } = null;
+
+	/**
+	 * Any tracking specific info for the page
+	 */
+	public tracking:{ "fbpixel":string } = null;
 	
 	/************************************************************/
 	
@@ -263,6 +268,11 @@ class FrontMatter
 	 * Any opengraph specific info for the page
 	 */
 	public opengraph:{ "fb:admins":string, "og:type":string, "og:image":string } = null;
+
+	/**
+	 * Any tracking specific info for the page
+	 */
+	public tracking:{ "fbpixel":string } = null;
 	
 	/************************************************************/
 	

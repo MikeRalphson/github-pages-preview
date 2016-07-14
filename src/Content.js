@@ -19,6 +19,7 @@ var Content = (function () {
         this.sitemap = null;
         this.meta = null;
         this.opengraph = null;
+        this.tracking = null;
         this.path = filePath.replace(/\\\\?/g, "/");
     }
     Object.defineProperty(Content.prototype, "isMarkdown", {
@@ -93,6 +94,7 @@ var FrontMatter = (function () {
         this.sitemap = null;
         this.meta = null;
         this.opengraph = null;
+        this.tracking = null;
     }
     FrontMatter.prototype.fromObj = function (obj) {
         for (var key in obj)

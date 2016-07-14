@@ -95,6 +95,8 @@ opengraph:
   og:image: /img/open_graph2.png
   og:locale: en_GB
   og:video: "http://some_video.com"
+tracking:
+  fbpixel: XXXXXXXXXXXXXXX
 ---
 ```
 
@@ -110,6 +112,7 @@ where:
 - `opengraph.og:type`: the type of the page for opengraph. If null, then the default from the config is used
 - `opengraph.og:image`: the image to use for opengraph. If null, then the default from the config is used
 - `og:locale`/`og:video`: any other opengraph tag will be added to the page automatically
+- `tracking:fbpixel`: the ID of the Facebook tracking pixel that you want to add to the page
 
 ## Compiling JekyllJS ##
 
