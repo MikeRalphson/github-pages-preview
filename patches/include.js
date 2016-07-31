@@ -7,63 +7,89 @@
   Liquid = require("../../liquid");
 
   module.exports = Include = (function(superClass) {
-    var Syntax, SyntaxVar, SyntaxHelp;
+    var Syntax, SyntaxFilenameVar, SyntaxHelp, SyntaxVars;
 
     extend(Include, superClass);
 
     Syntax = /([a-z0-9\/\\_-]+)/i;
-	SyntaxVar = /\{\{\s*(.*)\s*\}\}/i;
+		SyntaxFilenameVar = /\{\{\s*(.*)\s*\}\}/i;
+		SyntaxVars = /([a-zA-Z\-_]+)="([^"]+)"/g;
 
     function Include(template, tagName, markup, tokens) {
-	  var matchVar = SyntaxVar.exec(markup); // check for vars
-	  if( matchVar )
-	  {
-		this.template = template; // we'll need this for later to load the file
-	  	this.filepathVar = new Liquid.Variable(matchVar[1]);
-	  }
-	  else
-	  {
-		var match = Syntax.exec(markup);
-		if (!match) {
-			throw new Liquid.SyntaxError(SyntaxHelp);
-		}
-		this.filepath = match[1];
-		this.subTemplate = template.engine.fileSystem.readTemplateFile(this.filepath).then(function(src) {
-			return template.engine.parse(src);
-		});
-	  }
+
+			// get any tokens
+			this.tokens = {};
+			var vars = markup.match( SyntaxVars );
+			if( vars )
+			{
+				// if we have something it'll be in the form 'key="var"'
+				var len = vars.length;
+				for( var i = 0; i < len; i++ )
+				{
+					var idx = vars[i].indexOf( '=' );
+					var key = vars[i].substring( 0, idx );
+					var val = vars[i].substring( idx + 2, vars[i].length - 1 ); // don't take the quote marks with the val
+					this.tokens[key] = val;
+				}
+			}
+
+			var matchVar = SyntaxFilenameVar.exec(markup); // check for vars
+			if( matchVar )
+			{
+				this.template = template; // we'll need this for later to load the file
+				this.filepathVar = new Liquid.Variable(matchVar[1]);
+			}
+			else
+			{
+				var match = Syntax.exec(markup);
+				if (!match) {
+					throw new Liquid.SyntaxError(SyntaxHelp);
+				}
+				this.filepath = match[1];
+				this.subTemplate = template.engine.fileSystem.readTemplateFile(this.filepath).then(function(src) {
+					return template.engine.parse(src);
+				});
+			}
       Include.__super__.constructor.apply(this, arguments);
     }
 
     Include.prototype.render = function(context) {
+
+			// set any variables
+			var len = context.environments.length;
+			for( var i = 0; i < len; i++ )
+			{
+				if( context.environments[i].site != null )
+					context.environments[i].include = this.tokens;
+			}
 		
-		// if we have a filepathVar, then we need to render our var to get the
-		// name of the content that we're loading
-		if( this.filepathVar )
-		{
-			var incl = this;
-			return this.filepathVar.render(context).then(function( path ){
-				
-				// remove any trailing filetype
-				if( path.indexOf( "." ) != -1 )
-					path = path.substring( 0, path.indexOf( "." ) );
+			// if we have a filepathVar, then we need to render our var to get the
+			// name of the content that we're loading
+			if( this.filepathVar )
+			{
+				var incl = this;
+				return this.filepathVar.render(context).then(function( path ){
 					
-				 // load the file
-				 return incl.template.engine.fileSystem.readTemplateFile(path).then(function(src) {
-					 
-					// get our template to parse the included file, then render
-					return incl.template.engine.parse(src).then(function(i){
-						return i.render( context );
-					})
+					// remove any trailing filetype
+					if( path.indexOf( "." ) != -1 )
+						path = path.substring( 0, path.indexOf( "." ) );
+						
+					// load the file
+					return incl.template.engine.fileSystem.readTemplateFile(path).then(function(src) {
+						
+						// get our template to parse the included file, then render
+						return incl.template.engine.parse(src).then(function(i){
+							return i.render( context );
+						})
+					});
 				});
-			});
+				
+			}
 			
-		}
-		
-		// from this point on, it's a normal include		
-		return this.subTemplate.then(function(i) {
-			return i.render(context);
-		});
+			// from this point on, it's a normal include		
+			return this.subTemplate.then(function(i) {
+				return i.render(context);
+			});
     };
 
     return Include;
