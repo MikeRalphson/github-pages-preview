@@ -169,6 +169,9 @@ function _createLiquidEngine() {
         },
         "cgi_escape": function (input) {
             return encodeURIComponent(input).replace(/%20/g, "+");
+        },
+        "base64": function (input) {
+            return new Buffer(input).toString('base64');
         }
     });
     LiquidHighlight.highlighter = highlighter;

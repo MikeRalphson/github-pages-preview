@@ -260,6 +260,11 @@ function _createLiquidEngine():void
 		// escapes chars for use in a url
 		"cgi_escape": function( input:string ):string {
 			return encodeURIComponent( input ).replace( /%20/g, "+" );
+		},
+
+		// base64 a string
+		"base64": function( input:string ):string {
+			return new Buffer( input ).toString( 'base64' );
 		}
 	});
 	
