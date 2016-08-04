@@ -93,7 +93,7 @@ class Content
 	/**
 	 * Any meta info for the page
 	 */
-	public meta:{ keywords:string, description:string } = null;
+	public meta:{ keywords:string, description:string, robots:string } = null;
 	
 	/**
 	 * Any opengraph specific info for the page
@@ -262,7 +262,7 @@ class FrontMatter
 	/**
 	 * Any meta info for the page
 	 */
-	public meta:{ keywords:string, description:string } = null;
+	public meta:{ keywords:string, description:string, robots:string } = null;
 	
 	/**
 	 * Any opengraph specific info for the page
