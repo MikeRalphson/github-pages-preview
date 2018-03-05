@@ -240,9 +240,11 @@ function _readContent(path, filename) {
         log.warn("Can't read the content '" + filePath + "' as the file doesn't exist");
         return null;
     }
+    log.info("Processing '" + filePath + "'");
     var contentsRaw = FS.readFileSync(filePath, yamlConfig.encoding);
     var content = new Content(Path.relative(config.src.path, filePath));
     content.readFromFile(filename, contentsRaw);
+    log.info("Has frontmatter: " + (content.frontMatter !== null));
     return content;
 }
 
@@ -334,7 +336,8 @@ function _saveContent(content, path, destPath) {
         }
         else {
             return _convertContent(content).then(function () {
-                log.debug("Saving file " + content.url);
+                destPath = destPath.replace('.md','.html').replace('.markdown','.html');
+                log.info("Saving converted file " + destPath + " " + content.url);
                 FS.writeFileSync(destPath, content.content, yamlConfig.encoding);
             }).catch(function (e) {
                 log.error("Couldn't save content " + content.url, e);
@@ -343,7 +346,7 @@ function _saveContent(content, path, destPath) {
         }
     }
     else {
-        log.debug("Saving file " + content.url);
+        log.info("Saving copy of file " + destPath + " " + content.url);
         _copyFile(path, destPath);
         return Promise.resolve();
     }

@@ -28,7 +28,7 @@ var Content = (function () {
         configurable: true
     });
     Content.prototype.readFromFile = function (filename, file) {
-        var a = file.match(/(^---(?:\r\n|\n))([\s\S]+)((?:\r\n|\n)---(?:\r\n|\n))([\s\S]+)/);
+        var a = file.match(/(^---(?:\r\n|\n))([\s\S]+)((?:\r\n|\n)---(?:\r\n|\n))([\s\S]+)/); // FIXME doesn't match ---\n---
         if (a != null) {
             this.content = a[4].trim();
             this.frontMatter = new FrontMatter();

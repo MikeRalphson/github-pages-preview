@@ -2,7 +2,7 @@ log:
   level: info
 src:
   '404': /404/
-  path: /home/mike/nodejs/mermade.github.io/
+  path: ./test/
 meta:
   keywords: 'default,keywords,here'
   description: default description
