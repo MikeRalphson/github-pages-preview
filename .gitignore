@@ -1,6 +1,3 @@
 # Dependency directory
-node_modules
+node_modules/
 
-# Typings (should use tsd to install them)
-typings/*.d.ts
-typings/*/*.d.ts
