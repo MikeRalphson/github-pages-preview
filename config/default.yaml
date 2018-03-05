@@ -1,0 +1,13 @@
+log:
+  level: info
+src:
+  '404': /404/
+  path: /home/mike/nodejs/mermade.github.io/
+meta:
+  keywords: 'default,keywords,here'
+  description: default description
+highlight:
+  parentClassName: highlight
+  shouldWrap: true
+server:
+  port: 4000

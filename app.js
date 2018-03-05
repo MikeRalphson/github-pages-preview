@@ -1,16 +1,20 @@
+'use strict';
+
 require('es6-promise').polyfill();
+
+const FS = require('fs');
+const HTTP = require('http');
+const Path = require('path');
+
+const YAML = require('js-yaml');
+
 var Bunyan = require('bunyan');
 var DateFormat = require('dateformat');
-var FS = require('fs');
-var HTTP = require('http');
 var Liquid = require('liquid-node');
 var Marked = require('marked');
 var NodeStatic = require('node-static');
-var Path = require('path');
 var RMRF = require('rimraf');
 var RSVP = require('es6-promise');
-var YAML = require('js-yaml');
-var ConfigHelper = require('./src/ConfigHelper');
 var Content = require('./src/Content');
 var IncludeIfExists = require('./src/IncludeIfExists');
 var JekyllJSHighlight = require('./src/JekyllJSHighlight');
@@ -18,6 +22,7 @@ var LiquidHighlight = require('./src/LiquidHighlight');
 var Site = require('./src/Site');
 var YAMLConfig = require('./src/YAMLConfig');
 var Promise = RSVP.Promise;
+
 var highlighter = null;
 var liquidEngine = null;
 var config = null;
@@ -27,6 +32,7 @@ var context = null;
 var layouts = null;
 var isServing = false;
 var startTime = null;
+
 function run() {
     startTime = new Date();
     _readToolConfig();
@@ -64,7 +70,7 @@ function run() {
     }).then(function () {
         var totalTimeMS = ((new Date()).getTime() - startTime.getTime());
         var totalTimeS = Math.floor(totalTimeMS / 1000);
-        var msg = "JekyllJS build finished in";
+        var msg = "github-pages-preview build finished in";
         var mins = 0;
         if (totalTimeS >= 60) {
             mins = Math.floor(totalTimeS / 60);
@@ -88,10 +94,12 @@ function run() {
         return;
     });
 }
+
 run();
+
 function _createLog() {
     log = Bunyan.createLogger({
-        name: 'JekyllJS',
+        name: 'github-pages-preview',
         streams: [
             {
                 level: config.log.level,
@@ -99,13 +107,14 @@ function _createLog() {
             }
         ]
     });
-    log.info("JekyllJS starting up on", new Date());
+    log.info("github-pages-preview starting up on", new Date());
     log.debug("Config", config);
 }
+
 function _readToolConfig() {
-    config = new ConfigHelper();
-    config.parse();
+    config = YAML.safeLoad(FS.readFileSync('./config/default.yaml','utf8'),{json:true});
 }
+
 function _readYAMLConfig() {
     var path = Path.join(config.src.path, "_config.yml");
     log.debug("Reading yaml config from " + path);
@@ -118,16 +127,19 @@ function _readYAMLConfig() {
     yamlConfig.fromObj(yaml);
     log.debug("YAML config:", yamlConfig);
 }
+
 function _createContext() {
     context = { site: new Site(), page: null, content: null };
     context.site.meta = config.meta;
     context.site.opengraph = config.opengraph;
     context.site.updateFromYAML(yamlConfig);
 }
+
 function _createJekyllJSHighlight() {
     highlighter = new JekyllJSHighlight();
     highlighter.config = config.highlight;
 }
+
 function _createMarked() {
     var renderer = new Marked.Renderer();
     renderer.code = function (code, lang) {
@@ -137,6 +149,7 @@ function _createMarked() {
         renderer: renderer
     });
 }
+
 function _createLiquidEngine() {
     liquidEngine = new Liquid.Engine();
     var escapeEntityMap = {
@@ -181,6 +194,7 @@ function _createLiquidEngine() {
     var lfs = new Liquid.LocalFileSystem(includePath, "html");
     liquidEngine.registerFileSystem(lfs);
 }
+
 function _readLayouts() {
     var layouts = {};
     var path = Path.join(config.src.path, yamlConfig.layouts_dir);
@@ -199,6 +213,7 @@ function _readLayouts() {
     });
     return layouts;
 }
+
 function _readContents(dir, ar) {
     var path = Path.join(config.src.path, dir);
     if (!FS.existsSync(path)) {
@@ -218,6 +233,7 @@ function _readContents(dir, ar) {
     });
     ar.sort(_sortContent);
 }
+
 function _readContent(path, filename) {
     var filePath = Path.join(path, filename);
     if (!FS.existsSync(filePath)) {
@@ -229,6 +245,7 @@ function _readContent(path, filename) {
     content.readFromFile(filename, contentsRaw);
     return content;
 }
+
 function _extractTags(content) {
     if (content.tags == null || content.tags.length == 0)
         return;
@@ -243,6 +260,7 @@ function _extractTags(content) {
             context.site.tags[t] = [content];
     }
 }
+
 function _convertPostsAndPages() {
     var sequence = Promise.resolve();
     context.site.posts.forEach(function (post) {
@@ -257,6 +275,7 @@ function _convertPostsAndPages() {
     });
     return sequence;
 }
+
 function _convertContent(content) {
     context.page = content;
     context.content = content.content;
@@ -272,12 +291,14 @@ function _convertContent(content) {
         throw e;
     });
 }
+
 function _rmrfDir(dir) {
     if (FS.existsSync(dir) && FS.statSync(dir).isDirectory) {
         log.debug("Clearing dir " + dir);
         RMRF.sync(dir);
     }
 }
+
 function _savePostsAndPages(destRoot) {
     var sequence = Promise.resolve();
     context.site.posts.forEach(function (post) {
@@ -294,6 +315,7 @@ function _savePostsAndPages(destRoot) {
     });
     return sequence;
 }
+
 function _saveContent(content, path, destPath) {
     if (content == null)
         return Promise.reject(new Error("Can't save some content in path " + destPath + " as null was passed"));
@@ -326,6 +348,7 @@ function _saveContent(content, path, destPath) {
         return Promise.resolve();
     }
 }
+
 function _copyAllOtherFiles(dir, sequence) {
     if (sequence == null)
         sequence = Promise.resolve();
@@ -364,6 +387,7 @@ function _copyAllOtherFiles(dir, sequence) {
     });
     return sequence;
 }
+
 function _copyFile(inPath, outPath) {
     var buffer = new Buffer(65536);
     var pos = 0;
@@ -377,6 +401,7 @@ function _copyFile(inPath, outPath) {
     FS.closeSync(inFile);
     FS.closeSync(outFile);
 }
+
 function _ensureDirs(path, root) {
     var curr = root + Path.sep;
     var parts = (path.indexOf("/") != -1) ? path.split("/") : path.split(Path.sep);
@@ -390,9 +415,11 @@ function _ensureDirs(path, root) {
             FS.mkdirSync(curr);
     }
 }
+
 function _sortContent(a, b) {
     return b.date.getTime() - a.date.getTime();
 }
+
 function _isSupportedContentType(filename) {
     var index = filename.lastIndexOf('.');
     if (index == -1)
@@ -400,6 +427,7 @@ function _isSupportedContentType(filename) {
     var ext = filename.substring(index + 1);
     return (ext == 'html' || ext == 'htm' || ext == 'md' || ext == 'markdown');
 }
+
 function _createServer() {
     var serverDir = Path.join(config.src.path, yamlConfig.destination);
     var file = new NodeStatic.Server(serverDir, {
@@ -439,3 +467,4 @@ function _createServer() {
     }).listen(config.server.port);
     log.info("Local server started at " + context.site.url);
 }
+

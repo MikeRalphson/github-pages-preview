@@ -26,34 +26,22 @@ When I added Markdown support using the [marked node.js library](https://github.
 
 ## Config ##
 
-GitHub-Pages-Preview comes with a [simple config](https://github.com/lorenwest/node-config) file, *config/default.json*, meaning you can change a few things without having to re-compile the project. It looks like this:
+GitHub-Pages-Preview comes with a simple config file, `config/default.yaml`, meaning you can change a few things without having to re-compile the project. It looks like this:
 
-```json
-{
-	"log":{
-		"level":"info"
-	},
-	"src":{
-		"path":"C:/PATH/TO/WEBSITE/",
-		"404":"/404/"
-	},
-	"meta":{
-		"keywords":"default,keywords,here",
-		"description":"default description"
-	},
-	"opengraph":{
-		"fb:admins":"XXXXX",
-		"og:type":"article",
-		"og:image":"/img/open_graph.png"
-	},
-	"highlight":{
-		"parentClassName":"highlight",
-		"shouldWrap":true
-	},
-	"server":{
-		"port":4000
-	}
-}
+```yaml
+log:
+  level: info
+src:
+  '404': /404/
+  path: /home/mike/nodejs/mermade.github.io/
+meta:
+  keywords: 'default,keywords,here'
+  description: default description
+highlight:
+  parentClassName: highlight
+  shouldWrap: true
+server:
+  port: 4000
 ```
 
 which translates as:
@@ -116,7 +104,7 @@ where:
 
 ## Running GitHub-Pages-Preview ##
 
-To compile your site, make sure the config in *config/default.json* is up to date, then open a command line and type:
+To compile your site, make sure the config in `config/default.yaml` is up to date, then open a command line and type:
 
 `./ghpp`
 
