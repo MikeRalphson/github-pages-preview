@@ -1,6 +1,6 @@
 # README #
 
-JekyllJS is a Node.js replacement for Jekyll sites, allowing you to build your site, as-is, without needing to install Ruby or Python. [The story behind it](http://divillysausages.com/2016/01/24/leaving-jekyll-behind/)
+GitHub-Pages-Preview is a Node.js replacement for Jekyll sites, allowing you to build your site, as-is, without needing to install Ruby or Python. [The story behind the original version, JekyllJS](http://divillysausages.com/2016/01/24/leaving-jekyll-behind/).
 
 ## Features ##
 
@@ -12,9 +12,9 @@ JekyllJS is a Node.js replacement for Jekyll sites, allowing you to build your s
 
 ## Differences ##
 
-- **Code highlighting**: Jekyll uses Pygments or Rouge for code highlighting, while JekyllJS uses [highlight.js](https://highlightjs.org/). Your code still gets highlighted, just the output will be different
+- **Code highlighting**: Jekyll uses Pygments or Rouge for code highlighting, while GitHub-Pages-Preview uses [highlight.js](https://highlightjs.org/). Your code still gets highlighted, just the output will be different
 - **Dates**: Dates in JavaScript handle [Romance Daylight Time](https://en.wikipedia.org/wiki/Central_European_Time), meaning that if you're in Europe, any dates between the end of March to the end of October will have an extra hour in the output, i.e. `new Date( "2016-04-01 00:00:00 +0100" )` will print as `Fri Apr 01 2016 01:00:00 GMT+0200 (Romance Daylight Time)`. This may or may not be a problem for you, depending on how you use dates in your site
-- **Categories**: JekyllJS doesn't support them, as I don't use them in my site. If there's a need, however, that can be changed
+- **Categories**: GitHub-Pages-Preview doesn't support them, as I don't use them in my site. If there's a need, however, that can be changed
 - **Include variables**: Assigning [variables for the `{% include %}` tag](http://jekyllrb.com/docs/templates/#includes) isn't supported. If you need support for tokens (for dynamic includes), you need to apply the patch listed below
 - **Null `{% if %}` checks**: If you check for null via `{% if someVar == null %}`, you'll need to change it to `{% if someVar == undefined %}` or just simply `{% if someVar %}`
 
@@ -26,7 +26,7 @@ When I added Markdown support using the [marked node.js library](https://github.
 
 ## Config ##
 
-JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config) file, *config/default.json*, meaning you can change a few things without having to re-compile the project. It looks like this:
+GitHub-Pages-Preview comes with a [simple config](https://github.com/lorenwest/node-config) file, *config/default.json*, meaning you can change a few things without having to re-compile the project. It looks like this:
 
 ```json
 {
@@ -58,7 +58,7 @@ JekyllJS comes with a [simple config](https://github.com/lorenwest/node-config) 
 
 which translates as:
 
-- `log.level`: the level used by [Bunyan](https://github.com/trentm/node-bunyan), the logger used by JekyllJS
+- `log.level`: the level used by [Bunyan](https://github.com/trentm/node-bunyan), the logger used by GitHub-Pages-Preview
 - `src.path`: the full path to the folder containing your Jekyll site (i.e. where *_layouts/* and *_posts/* live)
 - `src.404`: the path for the file to serve as the 404 page, if you have one
 - `meta.keywords`: the default meta keywords to add to each page if the page doesn't specify any. Set to null or leave out to ignore this
@@ -114,20 +114,12 @@ where:
 - `og:locale`/`og:video`: any other opengraph tag will be added to the page automatically
 - `tracking:fbpixel`: the ID of the Facebook tracking pixel that you want to add to the page
 
-## Compiling JekyllJS ##
+## Running GitHub-Pages-Preview ##
 
-JekyllJS is written in [TypeScript](http://www.typescriptlang.org/), and comes with a project file for [Visual Studio Code](https://code.visualstudio.com/). You can install TypeScript using 
+To compile your site, make sure the config in *config/default.json* is up to date, then open a command line and type:
 
-```npm install -g typescript```
+`./ghpp`
 
-The js files are included, so you don't need to have TypeScript in order to run JekyllJS.
+If you want GitHub-Pages-Preview to serve your site as well, use:
 
-## Running JekyllJS ##
-
-To compile your site, make sure the config in *config/default.json* is up to date, then open a command line and type
-
-```node app.js | "./node_modules/.bin/bunyan" -o short```
-
-If you want JekyllJS to serve your site as well, use
-
-```node app.js serve | "./node_modules/.bin/bunyan" -o short```
+`./ghpp serve`
