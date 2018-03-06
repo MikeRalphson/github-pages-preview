@@ -1,4 +1,8 @@
 # Dependency directory
 node_modules/
 
+# Optional theme 'packs'
+themes/
+
+# Generated test site output
 test/_site/
