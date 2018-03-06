@@ -8,30 +8,31 @@ const Path = require('path');
 
 const YAML = require('js-yaml');
 
-var Bunyan = require('bunyan');
-var DateFormat = require('dateformat');
-var Liquid = require('liquid-node');
-var Marked = require('marked');
-var NodeStatic = require('node-static');
-var RMRF = require('rimraf');
-var RSVP = require('es6-promise');
-var Content = require('./src/Content');
-var IncludeIfExists = require('./src/IncludeIfExists');
-var JekyllJSHighlight = require('./src/JekyllJSHighlight');
-var LiquidHighlight = require('./src/LiquidHighlight');
-var Site = require('./src/Site');
-var YAMLConfig = require('./src/YAMLConfig');
-var Promise = RSVP.Promise;
+const Bunyan = require('bunyan');
+const DateFormat = require('dateformat');
+const Liquid = require('liquid-node');
+const Marked = require('marked');
+const NodeStatic = require('node-static');
+const RMRF = require('rimraf');
+const RSVP = require('es6-promise');
+const Content = require('./src/Content');
+const IncludeIfExists = require('./src/IncludeIfExists');
+const JekyllJSHighlight = require('./src/JekyllJSHighlight');
+const LiquidHighlight = require('./src/LiquidHighlight');
+const SEO = require('./src/SEO');
+const Site = require('./src/Site');
+const YAMLConfig = require('./src/YAMLConfig');
+const Promise = RSVP.Promise;
 
-var highlighter = null;
-var liquidEngine = null;
-var config = null;
-var log = null;
-var yamlConfig = null;
-var context = null;
-var layouts = null;
-var isServing = false;
-var startTime = null;
+let highlighter = null;
+let liquidEngine = null;
+let config = null;
+let log = null;
+let yamlConfig = null;
+let context = null;
+let layouts = null;
+let isServing = false;
+let startTime = null;
 
 function run() {
     startTime = new Date();
@@ -185,11 +186,15 @@ function _createLiquidEngine() {
         },
         "base64": function (input) {
             return new Buffer(input).toString('base64');
+        },
+        "relative_url": function(input) {
+            return input;
         }
     });
     LiquidHighlight.highlighter = highlighter;
     liquidEngine.registerTag("highlight", LiquidHighlight);
     liquidEngine.registerTag("include_if_exists", IncludeIfExists);
+    liquidEngine.registerTag("seo", SEO);
     var includePath = Path.join(config.src.path, yamlConfig.includes_dir);
     var lfs = new Liquid.LocalFileSystem(includePath, "html");
     liquidEngine.registerFileSystem(lfs);
@@ -323,11 +328,21 @@ function _saveContent(content, path, destPath) {
         return Promise.reject(new Error("Can't save some content in path " + destPath + " as null was passed"));
     if (content.frontMatter != null) {
         var layout = (content.layout != null) ? layouts[content.layout] : null;
+        if ((layout === null || typeof layout === 'undefined') && (content.frontMatter["jekyll-theme"])) {
+            context.seo = {};
+            layout = FS.readFileSync('./themes/'+content.frontMatter["jekyll-theme"]+'/_layouts/'+(content.layout||'default')+'.html','utf8');
+        }
         if (layout != null) {
             context.page = content;
-            context.content = content.content;
+            if (content.isMarkdown) {
+                context.content = Marked(content.content);
+            }
+            else {
+                context.content = content.content;
+            }
             return liquidEngine.parseAndRender(layout, context).then(function (result) {
-                log.debug("Saving file " + content.url);
+                destPath = destPath.replace('.md','.html').replace('.markdown','.html');
+                log.debug("Saving converted file " + content.url);
                 FS.writeFileSync(destPath, result, yamlConfig.encoding);
             }).catch(function (e) {
                 log.error("Couldn't save content " + content.url, e);
