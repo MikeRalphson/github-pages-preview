@@ -7,6 +7,7 @@ const HTTP = require('http');
 const Path = require('path');
 
 const YAML = require('js-yaml');
+const mkdirp = require('mkdirp');
 
 const Bunyan = require('bunyan');
 const DateFormat = require('dateformat');
@@ -331,6 +332,10 @@ function _saveContent(content, path, destPath) {
         if ((layout === null || typeof layout === 'undefined') && (content.frontMatter["jekyll-theme"])) {
             context.seo = {};
             layout = FS.readFileSync('./themes/'+content.frontMatter["jekyll-theme"]+'/_layouts/'+(content.layout||'default')+'.html','utf8');
+            let destDir = Path.join(config.src.path, yamlConfig.destination);
+            log.info('Making '+destDir+'/assets/css');
+            mkdirp.sync(destDir+'/assets/css');
+            _copyFile('./themes/'+content.frontMatter["jekyll-theme"]+'.css', destDir+'/assets/css/style.css');
         }
         if (layout != null) {
             context.page = content;

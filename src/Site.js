@@ -10,6 +10,10 @@ var Site = (function () {
         this.tags = {};
         this.meta = null;
         this.opengraph = null;
+        this.github = {
+            repository_name: 'github-pages-preview',
+            project_tagline: 'GitHub-Pages-Preview is a Node.js replacement for Jekyll sites, allowing you to build your site, as-is, without needing to install Ruby or Python'
+        };
     }
     Site.prototype.updateFromYAML = function (yaml) {
         for (var key in yaml) {
