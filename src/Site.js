@@ -12,7 +12,11 @@ var Site = (function () {
         this.opengraph = null;
         this.github = {
             repository_name: 'github-pages-preview',
-            project_tagline: 'GitHub-Pages-Preview is a Node.js replacement for Jekyll sites, allowing you to build your site, as-is, without needing to install Ruby or Python'
+            repository_url: 'https://github.com/MikeRalphson/github-pages-preview',
+            is_project_page: true,
+            project_tagline: 'GitHub-Pages-Preview is a Node.js replacement for Jekyll sites, allowing you to build your site, as-is, without needing to install Ruby or Python',
+            owner_url: 'https://github.com/MikeRalphson',
+            owner_name: 'Mike Ralphson'
         };
     }
     Site.prototype.updateFromYAML = function (yaml) {

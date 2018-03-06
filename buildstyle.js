@@ -6,7 +6,8 @@ var fs = require('fs');
 var sass = require('node-sass');
 var assetFunctions = require('node-sass-asset-functions');
 
-var outputStyle = process.argv.length > 2 ? process.argv[2] : 'nested';
+var outputStyle = 'compressed';
+var theme = process.argv.length > 2 ? process.argv[2] : 'cayman';
 
 function sassRender(infile,outfile) {
 	sass.render({
@@ -25,4 +26,4 @@ function sassRender(infile,outfile) {
 	});
 }
 
-sassRender('./themes/cayman/_sass/jekyll-theme-cayman.scss','./themes/cayman.css');
+sassRender('./themes/'+theme+'/_sass/jekyll-theme-'+theme+'.scss','./themes/'+theme+'.css');

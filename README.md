@@ -64,6 +64,16 @@ NOTE: other basic OpenGraph tags can be auto generated:
 - `og:site_name`: taken from *_config.yml*: `<meta property="og:site_name" content="{{ site.title }}"/>`
 - `og:url`: the full canonical url of the page; `<meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}" />`
 
+## Running GitHub-Pages-Preview ##
+
+To compile your site, make sure the config in `config/default.yaml` is up to date, then open a command line and type:
+
+`./ghpp`
+
+If you want GitHub-Pages-Preview to serve your site as well, use:
+
+`./ghpp serve`
+
 ## Sample Post YAML FrontMatter ##
 
 A quick idea of the frontmatter for a post, some of which would override the site defaults:
@@ -102,12 +112,10 @@ where:
 - `og:locale`/`og:video`: any other opengraph tag will be added to the page automatically
 - `tracking:fbpixel`: the ID of the Facebook tracking pixel that you want to add to the page
 
-## Running GitHub-Pages-Preview ##
+## Theme support
 
-To compile your site, make sure the config in `config/default.yaml` is up to date, then open a command line and type:
+Check out GitHub pages themes into the `themes` directory.
 
-`./ghpp`
+You may need to add `{% endseo %}` tags until I can figure out how to create auto-closing tags in Liquid.
 
-If you want GitHub-Pages-Preview to serve your site as well, use:
-
-`./ghpp serve`
+You can build the `scss` into plain `css` with the included `buildStyle` script.
