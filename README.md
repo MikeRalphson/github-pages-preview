@@ -1,6 +1,8 @@
-# README #
+# GitHub-Pages-Preview
 
 GitHub-Pages-Preview is a Node.js replacement for Jekyll sites, allowing you to build your site, as-is, without needing to install Ruby or Python. [The story behind the original version, JekyllJS](http://divillysausages.com/2016/01/24/leaving-jekyll-behind/).
+
+![Screenshot](https://github.com/MikeRalphson/github-pages-preview/blob/master/docs/ghpp1.png?raw=true)
 
 ## Features ##
 
