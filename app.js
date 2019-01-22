@@ -6,7 +6,7 @@ const FS = require('fs');
 const HTTP = require('http');
 const Path = require('path');
 
-const YAML = require('js-yaml');
+const YAML = require('yaml');
 const mkdirp = require('mkdirp');
 
 const Bunyan = require('bunyan');
@@ -114,7 +114,7 @@ function _createLog() {
 }
 
 function _readToolConfig() {
-    config = YAML.safeLoad(FS.readFileSync('./config/default.yaml','utf8'),{json:true});
+    config = YAML.parse(FS.readFileSync('./config/default.yaml','utf8'));
 }
 
 function _readYAMLConfig() {
@@ -122,7 +122,7 @@ function _readYAMLConfig() {
     log.debug("Reading yaml config from " + path);
     var yaml = {};
     if (FS.existsSync(path))
-        yaml = YAML.load(FS.readFileSync(path, "utf-8"));
+        yaml = YAML.parse(FS.readFileSync(path, "utf-8"));
     else
         log.warn("The YAML config file (" + path + ") doesn't exist");
     yamlConfig = new YAMLConfig();
